@@ -19,14 +19,17 @@ jobs:
         rm -rf drivers/kernelsu drivers/KernelSU
         mkdir -p drivers/kernelsu
         
-        # ترفند تکه‌تکه کردن آدرس برای دور زدن فیلتر و قطع شدن لینک در زمان آپلود
         PART1="https://github.com"
         PART2="/KernelSU-Next/KernelSU-Next"
         PART3="/archive/refs/heads/dev.tar.gz"
         
-        # چسباندن تکه‌ها و دانلود نسخه دِو ۳.۳.۰
         FULL_URL="${PART1}${PART2}${PART3}"
         curl -LSs "$FULL_URL" | tar -xz -C drivers/kernelsu --strip-components=1
+        
+        # حل مشکل تداخل مسیر فایل Kconfig اگزینوس با ساختار کرنل‌سو نکست
+        if [ -f "drivers/kernelsu/kernel/Kconfig" ]; then
+          cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
+        fi
 
     - name: Build Kernel
       run: |
