@@ -103,6 +103,12 @@ jobs:
         if [ -f "$TARGET_BBD_FILE" ]; then
           sed -i '1s/^/#define bbd_patch_R_unbound bbd_patch_R_r9s\n/' "$TARGET_BBD_FILE"
         fi
+
+        # Inject missing PANEL_HMD sequence indexes for Exynos fbdev panel driver
+        TARGET_PANEL_FILE="drivers/video/fbdev/exynos/panel/panel.h"
+        if [ -f "$TARGET_PANEL_FILE" ]; then
+          sed -i '/PANEL_SET_BL_SEQ,/i \	PANEL_HMD_ON_SEQ,\n\	PANEL_HMD_OFF_SEQ,\n\	PANEL_HMD_BL_SEQ,' "$TARGET_PANEL_FILE"
+        fi
         
         make exynos2100-r9sxxx_defconfig \
           CC="$CC" \
