@@ -14,12 +14,12 @@ jobs:
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev
 
-    - name: Fix KernelSU Folder Name Case
+    - name: Download KernelSU Next to Right Path
       run: |
-        # تغییر نام پوشه به حروف کوچک برای هماهنگی با فایل‌های Kconfig پروژه شما
-        if [ -d "KernelSU" ]; then
-          mv KernelSU kernelsu
-        fi
+        # حذف پوشه احتمالی قدیمی برای جلوگیری از تداخل
+        rm -rf drivers/kernelsu drivers/KernelSU
+        # دانلود مستقیم سورس در مسیر مورد نیاز با حروف کوچک
+        git clone --depth=1 https://github.com drivers/kernelsu
 
     - name: Build Kernel
       run: |
