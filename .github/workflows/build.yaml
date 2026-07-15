@@ -1,6 +1,6 @@
 name: Build Kernel with KernelSU Next
 on:
-  workflow_dispatch: # این گزینه به شما اجازه می‌دهد کامپایل را دستی شروع کنید
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,17 +13,36 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip
+        
+    - name: Download Google Toolchains
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/tc
+        # دانلود کامپایلر پیش‌فرض AArch64 GCC برای سازگاری با اسکریپت‌های اگزینوس
+        git clone --depth=1 https://googlesource.com $GITHUB_WORKSPACE/tc/gcc
+        # دانلود کامپایلر Clang گوگل
+        git clone --depth=1 https://googlesource.com $GITHUB_WORKSPACE/tc/clang
 
     - name: Build Kernel
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
-        export CROSS_COMPILE=aarch64-linux-gnu-
-        make O=out exynos2100-r9sxxx_defconfig # به جای vendor_defconfig اسم دقیق فایل خود را بنویسید
-        make -j$(nproc) O=out
+        
+        # معرفی مسیر کامپایلرهای دانلود شده به سیستم
+        export PATH=$GITHUB_WORKSPACE/tc/clang/bin:$GITHUB_WORKSPACE/tc/gcc/bin:$PATH
+        
+        # تنظیم متغیرهای کامپایل مخصوص پردازنده‌های Exynos
+        export CC=clang
+        export CLANG_TRIPLE=aarch64-linux-gnu-
+        export CROSS_COMPILE=aarch64-linux-android-
+        
+        # ایجاد پوشه خروجی و بارگذاری کانفیگ اگزینوس ۲۱۰۰ شما
+        make O=out exynos2100-r9sxxx_defconfig
+        
+        # شروع کامپایل
+        make -j$(nproc) O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-android-
 
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
       with:
-        name: Kernel-Image
+        name: Kernel-Image-Exynos2100
         path: out/arch/arm64/boot/Image*
