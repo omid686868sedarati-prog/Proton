@@ -40,15 +40,14 @@ jobs:
         	default y
         EOF
         
+        cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
+        
         touch drivers/kernelsu/kernel/allowlist.c
         touch drivers/kernelsu/kernel/auto_attach.c
         touch drivers/kernelsu/kernel/avatar.c
         touch drivers/kernelsu/kernel/apk_sign.c
         touch drivers/kernelsu/kernel/core_hook.c
         touch drivers/kernelsu/kernel/su.c
-        
-        echo "obj-\$(CONFIG_KERNELSU) += kernelsu/" >> drivers/Makefile
-        echo "source \"drivers/kernelsu/kernel/Kconfig\"" >> drivers/Kconfig
 
     - name: Build Kernel
       run: |
