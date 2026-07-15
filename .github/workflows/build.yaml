@@ -14,33 +14,15 @@ jobs:
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev
 
-    - name: Download Proton Clang
-      run: |
-        mkdir -p $GITHUB_WORKSPACE/tc
-        git clone --depth=1 https://github.com/omid686868sedarati-prog/Proton $GITHUB_WORKSPACE/tc/proton-clang
-
     - name: Build Kernel
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
         
-        # معرفی مسیر ابزارهای کامپایل به سیستم
-        export PATH=$GITHUB_WORKSPACE/tc/proton-clang/bin:$PATH
+        # اجرای اسکریپت بومی پروژه برای کامپایل خودکار با ابزارهای داخلی اگزینوس ۲۱۰۰
+        chmod +x build_kernel.sh
+        ./build_kernel.sh
         
-        # تنظیم متغیرهای کامپایل سازگار با اسکریپت اگزینوس
-        export CC=clang
-        export CROSS_COMPILE=aarch64-linux-gnu-
-        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
-        
-        # ترفند اتصال ابزارها برای دور زدن خطای بررسی کامپایلر سنتی در Kconfig
-        ln -s $GITHUB_WORKSPACE/tc/proton-clang/bin/aarch64-linux-gnu-llvm-objcopy $GITHUB_WORKSPACE/tc/proton-clang/bin/aarch64-linux-gnu-objcopy || true
-        
-        # ایجاد پوشه خروجی و لود کردن کانفیگ اختصاصی اگزینوس شما
-        make O=out exynos2100-r9sxxx_defconfig
-        
-        # شروع نهایی عملیات ساخت کرنل با معرفی تمام ابزارهای پیوسته ال‌ال‌وی‌ام
-        make -j$(nproc) O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- LD=ld.lld AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
-
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
       with:
