@@ -40,9 +40,13 @@ jobs:
         export ARCH=arm64
         export SUBARCH=arm64
         
-        # مجبور کردن اسکریپت به استفاده از کامپایلر کِلَنگ برای تمام ابزارها و دور زدن ارور لیتل-اندین
+        # تزریق سراسری متغیرها برای حل قطعی ارور -mlittle-endian در ابزارهای هاست
+        export CC=clang
+        export HOSTCC=clang
+        export HOSTCXX=clang++
+        
         chmod +x build_kernel.sh
-        ./build_kernel.sh CC=clang HOSTCC=clang
+        ./build_kernel.sh
         
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
