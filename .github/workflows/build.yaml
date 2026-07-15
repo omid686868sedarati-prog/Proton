@@ -49,18 +49,17 @@ jobs:
         export ANDROID_MAJOR_VERSION=r
         export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
-        export PROTON_BIN=$GITHUB_WORKSPACE/tc/proton-clang/bin
-        export PATH=$PROTON_BIN:$PATH
+        export TC_DIR=$GITHUB_WORKSPACE/tc/proton-clang/bin
         
-        export CC="clang"
-        export LD="ld.lld"
-        export AR="llvm-ar"
-        export NM="llvm-nm"
-        export OBJCOPY="llvm-objcopy"
-        export OBJDUMP="llvm-objdump"
-        export STRIP="llvm-strip"
-        export CROSS_COMPILE=aarch64-linux-gnu-
-        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        export CC="$TC_DIR/clang"
+        export LD="$TC_DIR/ld.lld"
+        export AR="$TC_DIR/llvm-ar"
+        export NM="$TC_DIR/llvm-nm"
+        export OBJCOPY="$TC_DIR/llvm-objcopy"
+        export OBJDUMP="$TC_DIR/llvm-objdump"
+        export STRIP="$TC_DIR/llvm-strip"
+        export CROSS_COMPILE="$TC_DIR/aarch64-linux-gnu-"
+        export CROSS_COMPILE_ARM32="$TC_DIR/arm-linux-gnueabi-"
         
         export HOSTCC="/usr/bin/gcc"
         export HOSTCXX="/usr/bin/g++"
@@ -70,7 +69,11 @@ jobs:
         export KCFLAGS="-Wno-error -fpermissive"
         export HOSTCFLAGS="-Wno-error"
         
-        make O=out exynos2100-r9sxxx_defconfig HOSTCC=$HOSTCC HOSTLD=$HOSTLD
+        make O=out exynos2100-r9sxxx_defconfig \
+          HOSTCC="$HOSTCC" \
+          HOSTCXX="$HOSTCXX" \
+          HOSTLD="$HOSTLD" \
+          HOSTAR="$HOSTAR"
         
         make -j$(nproc) O=out \
           CC="$CC" \
@@ -80,12 +83,12 @@ jobs:
           OBJCOPY="$OBJCOPY" \
           OBJDUMP="$OBJDUMP" \
           STRIP="$STRIP" \
-          CROSS_COMPILE=aarch64-linux-gnu- \
-          CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-          HOSTCC=$HOSTCC \
-          HOSTCXX=$HOSTCXX \
-          HOSTLD=$HOSTLD \
-          HOSTAR=$HOSTAR \
+          CROSS_COMPILE="$CROSS_COMPILE" \
+          CROSS_COMPILE_ARM32="$CROSS_COMPILE_ARM32" \
+          HOSTCC="$HOSTCC" \
+          HOSTCXX="$HOSTCXX" \
+          HOSTLD="$HOSTLD" \
+          HOSTAR="$HOSTAR" \
           KCFLAGS="${KCFLAGS}" \
           HOSTCFLAGS="${HOSTCFLAGS}"
 
