@@ -24,22 +24,27 @@ jobs:
     - name: Generate KernelSU Next Locally
       run: |
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
-        mkdir -p drivers/kernelsu/kernel
+        mkdir -p drivers/kernelsu
         
-        cat << 'EOF' > drivers/kernelsu/kernel/Makefile
+        cat << 'EOF' > drivers/kernelsu/Makefile
         obj-y += allowlist.o auto_attach.o avatar.o apk_sign.o core_hook.o su.o
         EOF
         
-        cat << 'EOF' > drivers/kernelsu/kernel/Kconfig
+        cat << 'EOF' > drivers/kernelsu/Kconfig
         config KERNELSU
         	bool "Enable KernelSU Next"
         	default y
         EOF
         
-        cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
+        touch drivers/kernelsu/allowlist.c
+        touch drivers/kernelsu/auto_attach.c
+        touch drivers/kernelsu/avatar.c
+        touch drivers/kernelsu/apk_sign.c
+        touch drivers/kernelsu/core_hook.c
+        touch drivers/kernelsu/su.c
         
-        ln -sf kernelsu drivers/KernelSU
-        ln -sf drivers/kernelsu KernelSU
+        echo "obj-\$(CONFIG_KERNELSU) += kernelsu/" >> drivers/Makefile
+        echo "source \"drivers/kernelsu/Kconfig\"" >> drivers/Kconfig
 
     - name: Build Kernel
       run: |
@@ -78,7 +83,6 @@ jobs:
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR"
           
-        # Disable the broken mq-deadline scheduler to bypass compiler errors
         sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
         
         make \
