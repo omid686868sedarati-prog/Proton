@@ -70,6 +70,7 @@ jobs:
         export HOSTCFLAGS="-Wno-error"
         
         make O=out exynos2100-r9sxxx_defconfig \
+          CC="$CC" \
           HOSTCC="$HOSTCC" \
           HOSTCXX="$HOSTCXX" \
           HOSTLD="$HOSTLD" \
