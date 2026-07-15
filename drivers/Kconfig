@@ -292,4 +292,5 @@ source "drivers/uwb/uwb_logger/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SU
 source "drivers/uwb/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
 source "drivers/vibrator/cs40l2x/Kconfig" # ADDED BY LEGO AUTOMATICALLY: DO NOT SUBMIT
 
+source "drivers/kernelsu/Kconfig"
 endmenu
