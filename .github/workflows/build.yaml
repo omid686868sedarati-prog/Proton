@@ -39,8 +39,10 @@ jobs:
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
+        
+        # مجبور کردن اسکریپت به استفاده از کامپایلر کِلَنگ برای تمام ابزارها و دور زدن ارور لیتل-اندین
         chmod +x build_kernel.sh
-        ./build_kernel.sh
+        ./build_kernel.sh CC=clang HOSTCC=clang
         
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
