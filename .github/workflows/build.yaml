@@ -69,14 +69,19 @@ jobs:
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
         
-        make O=out exynos2100-r9sxxx_defconfig \
+        make mrproper
+        
+        make exynos2100-r9sxxx_defconfig \
           CC="$CC" \
           HOSTCC="$HOSTCC" \
           HOSTCXX="$HOSTCXX" \
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR"
+          
+        # Disable the broken mq-deadline scheduler to bypass compiler errors
+        sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
         
-        make O=out \
+        make \
           CC="$CC" \
           LD="$LD" \
           AR="$AR" \
@@ -97,4 +102,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Kernel-Image-Exynos2100
-        path: out/arch/arm64/boot/Image*
+        path: arch/arm64/boot/Image*
