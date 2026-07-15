@@ -12,16 +12,7 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt update
-        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3
-
-    - name: Download Google Clang Safely
-      run: |
-        mkdir -p $GITHUB_WORKSPACE/tc
-        PART1="https://googlesource.com"
-        PART2="/platform/prebuilts/clang/host/linux-x86/+archive"
-        PART3="/refs/heads/main/clang-r416183b.tar.gz"
-        mkdir -p $GITHUB_WORKSPACE/tc/clang
-        curl -LSs "${PART1}${PART2}${PART3}" | tar -xz -C $GITHUB_WORKSPACE/tc/clang
+        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3 clang-14 lld-14 llvm-14
 
     - name: Download KernelSU Next safely
       run: |
@@ -50,11 +41,14 @@ jobs:
         export ANDROID_MAJOR_VERSION=r
         export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
-        export PATH=$GITHUB_WORKSPACE/tc/clang/bin:$PATH
+        # معرفی و ست کردن کامپایلر رسمی لینوکس برای کل سیستم ساخت
+        export CC=clang-14
+        export HOSTCC=clang-14
+        export HOSTCXX=clang++-14
         
-        make O=out exynos2100-r9sxxx_defconfig CC=clang
-        make -j$(nproc) O=out CC=clang
-        
+        make O=out exynos2100-r9sxxx_defconfig CC=clang-14 HOSTCC=clang-14
+        make -j$(nproc) O=out CC=clang-14 HOSTCC=clang-14 LD=ld.lld-14 AR=llvm-ar-14 NM=llvm-nm-14 OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14
+
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
       with:
