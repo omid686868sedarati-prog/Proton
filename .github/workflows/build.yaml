@@ -16,7 +16,7 @@ jobs:
 
     - name: Download KernelSU Next safely
       run: |
-        rm -rf drivers/kernelsu drivers/KernelSU
+        rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         mkdir -p drivers/kernelsu
         
         PART1="https://github.com"
@@ -31,8 +31,9 @@ jobs:
           cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
         fi
         
-        # حل مشکل تداخل حروف کوچک و بزرگ در فایل‌های Makefile ویرایش‌شده
-        ln -s kernelsu drivers/KernelSU
+        # ایجاد لینک‌های مجازی دقیق در تمام مسیرهای احتمالی مورد نیاز Makefile
+        ln -sf kernelsu drivers/KernelSU
+        ln -sf drivers/kernelsu KernelSU
 
     - name: Build Kernel
       run: |
