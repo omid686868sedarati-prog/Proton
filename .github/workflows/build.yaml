@@ -12,34 +12,32 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt update
-        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip
-        
-    - name: Download Google Toolchains
+        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev
+
+    - name: Download Proton Clang
       run: |
         mkdir -p $GITHUB_WORKSPACE/tc
-        # دانلود کامپایلر پیش‌فرض AArch64 GCC برای سازگاری با اسکریپت‌های اگزینوس
-        git clone --depth=1 https://googlesource.com $GITHUB_WORKSPACE/tc/gcc
-        # دانلود کامپایلر Clang گوگل
-        git clone --depth=1 https://googlesource.com $GITHUB_WORKSPACE/tc/clang
+        # دانلود نسخه بهینه و سبک Proton Clang مخصوص کامپایل اگزینوس و اسنپ‌دراگون
+        git clone --depth=1 https://github.com $GITHUB_WORKSPACE/tc/proton-clang
 
     - name: Build Kernel
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
         
-        # معرفی مسیر کامپایلرهای دانلود شده به سیستم
-        export PATH=$GITHUB_WORKSPACE/tc/clang/bin:$GITHUB_WORKSPACE/tc/gcc/bin:$PATH
+        # معرفی مسیر Proton Clang به سرور
+        export PATH=$GITHUB_WORKSPACE/tc/proton-clang/bin:$PATH
         
-        # تنظیم متغیرهای کامپایل مخصوص پردازنده‌های Exynos
+        # متغیرهای استاندارد کامپایل با Proton Clang
         export CC=clang
-        export CLANG_TRIPLE=aarch64-linux-gnu-
-        export CROSS_COMPILE=aarch64-linux-android-
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         
-        # ایجاد پوشه خروجی و بارگذاری کانفیگ اگزینوس ۲۱۰۰ شما
+        # ایجاد پوشه خروجی و لود کردن کانفیگ اگزینوس شما
         make O=out exynos2100-r9sxxx_defconfig
         
-        # شروع کامپایل
-        make -j$(nproc) O=out CC=clang CLANG_TRIPLE=aarch64-linux-gnu- CROSS_COMPILE=aarch64-linux-android-
+        # شروع عملیات کامپایل کرنل
+        make -j$(nproc) O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
