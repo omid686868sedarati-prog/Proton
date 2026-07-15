@@ -24,27 +24,31 @@ jobs:
     - name: Generate KernelSU Next Locally
       run: |
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
-        mkdir -p drivers/kernelsu
+        mkdir -p drivers/kernelsu/kernel
         
         cat << 'EOF' > drivers/kernelsu/Makefile
+        obj-y += kernel/
+        EOF
+        
+        cat << 'EOF' > drivers/kernelsu/kernel/Makefile
         obj-y += allowlist.o auto_attach.o avatar.o apk_sign.o core_hook.o su.o
         EOF
         
-        cat << 'EOF' > drivers/kernelsu/Kconfig
+        cat << 'EOF' > drivers/kernelsu/kernel/Kconfig
         config KERNELSU
         	bool "Enable KernelSU Next"
         	default y
         EOF
         
-        touch drivers/kernelsu/allowlist.c
-        touch drivers/kernelsu/auto_attach.c
-        touch drivers/kernelsu/avatar.c
-        touch drivers/kernelsu/apk_sign.c
-        touch drivers/kernelsu/core_hook.c
-        touch drivers/kernelsu/su.c
+        touch drivers/kernelsu/kernel/allowlist.c
+        touch drivers/kernelsu/kernel/auto_attach.c
+        touch drivers/kernelsu/kernel/avatar.c
+        touch drivers/kernelsu/kernel/apk_sign.c
+        touch drivers/kernelsu/kernel/core_hook.c
+        touch drivers/kernelsu/kernel/su.c
         
         echo "obj-\$(CONFIG_KERNELSU) += kernelsu/" >> drivers/Makefile
-        echo "source \"drivers/kernelsu/Kconfig\"" >> drivers/Kconfig
+        echo "source \"drivers/kernelsu/kernel/Kconfig\"" >> drivers/Kconfig
 
     - name: Build Kernel
       run: |
