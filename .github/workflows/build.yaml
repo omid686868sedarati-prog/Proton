@@ -19,9 +19,18 @@ jobs:
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         mkdir -p drivers/kernelsu/kernel
         
-        # Injecting necessary core files natively to bypass network block
-        echo 'obj-y += allowlist.o auto_attach.o avatar.o apk_sign.o core_hook.o su.o' > drivers/kernelsu/kernel/Makefile
-        echo 'config KERNELSU\n\tbool "Enable KernelSU Next"\n\tdefault y' > drivers/kernelsu/kernel/Kconfig
+        # Write Makefile safely
+        cat << 'EOF' > drivers/kernelsu/kernel/Makefile
+        obj-y += allowlist.o auto_attach.o avatar.o apk_sign.o core_hook.o su.o
+        EOF
+        
+        # Write Kconfig safely
+        cat << 'EOF' > drivers/kernelsu/kernel/Kconfig
+        config KERNELSU
+        	bool "Enable KernelSU Next"
+        	default y
+        EOF
+        
         cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
         
         ln -sf kernelsu drivers/KernelSU
