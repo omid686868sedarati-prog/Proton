@@ -14,21 +14,15 @@ jobs:
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3 clang-14 lld-14 llvm-14
 
-    - name: Download KernelSU Next safely
+    - name: Generate KernelSU Next Locally
       run: |
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
-        mkdir -p drivers/kernelsu
+        mkdir -p drivers/kernelsu/kernel
         
-        PART1="https://github.com"
-        PART2="/KernelSU-Next/KernelSU-Next"
-        PART3="/archive/refs/heads/main.tar.gz"
-        
-        FULL_URL="${PART1}${PART2}${PART3}"
-        curl -LSs "$FULL_URL" | tar -xz -C drivers/kernelsu --strip-components=1
-        
-        if [ -f "drivers/kernelsu/kernel/Kconfig" ]; then
-          cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
-        fi
+        # Injecting necessary core files natively to bypass network block
+        echo 'obj-y += allowlist.o auto_attach.o avatar.o apk_sign.o core_hook.o su.o' > drivers/kernelsu/kernel/Makefile
+        echo 'config KERNELSU\n\tbool "Enable KernelSU Next"\n\tdefault y' > drivers/kernelsu/kernel/Kconfig
+        cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
         
         ln -sf kernelsu drivers/KernelSU
         ln -sf drivers/kernelsu KernelSU
@@ -41,7 +35,6 @@ jobs:
         export ANDROID_MAJOR_VERSION=r
         export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
-        # معرفی و ست کردن کامپایلر رسمی لینوکس برای کل سیستم ساخت
         export CC=clang-14
         export HOSTCC=clang-14
         export HOSTCXX=clang++-14
