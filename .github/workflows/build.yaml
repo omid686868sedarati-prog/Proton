@@ -2,6 +2,9 @@ name: Build Kernel with KernelSU Next
 on:
   workflow_dispatch:
 
+env:
+  KSU_URL: "https://github.com"
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,7 +21,7 @@ jobs:
       run: |
         rm -rf drivers/kernelsu drivers/KernelSU
         mkdir -p drivers/kernelsu
-        curl -LSs "https://github.com" | tar -xz -C drivers/kernelsu --strip-components=1
+        curl -LSs "${{ env.KSU_URL }}" | tar -xz -C drivers/kernelsu --strip-components=1
 
     - name: Build Kernel
       run: |
