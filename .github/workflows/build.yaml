@@ -98,6 +98,12 @@ jobs:
           sed -i '1s/^/#define SSP_FIRMWARE_REVISION_BCM_R_UNBOUND 0\n/' "$TARGET_SENSOR_FILE"
         fi
         
+        # Inject missing firmware patch array reference for Sensor Hub bbd driver
+        TARGET_BBD_FILE="drivers/sensorhub/brcm/bbdpl/bbd.c"
+        if [ -f "$TARGET_BBD_FILE" ]; then
+          sed -i '1s/^/#define bbd_patch_R_unbound bbd_patch_R_r9s\n/' "$TARGET_BBD_FILE"
+        fi
+        
         make exynos2100-r9sxxx_defconfig \
           CC="$CC" \
           LD="$LD" \
