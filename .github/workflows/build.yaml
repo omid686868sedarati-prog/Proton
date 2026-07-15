@@ -26,10 +26,13 @@ jobs:
         FULL_URL="${PART1}${PART2}${PART3}"
         curl -LSs "$FULL_URL" | tar -xz -C drivers/kernelsu --strip-components=1
         
-        # حل مشکل تداخل مسیر فایل Kconfig اگزینوس با ساختار کرنل‌سو نکست
+        # حل مشکل تداخل مسیر فایل Kconfig اگزینوس
         if [ -f "drivers/kernelsu/kernel/Kconfig" ]; then
           cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
         fi
+        
+        # حل مشکل تداخل حروف کوچک و بزرگ در فایل‌های Makefile ویرایش‌شده
+        ln -s kernelsu drivers/KernelSU
 
     - name: Build Kernel
       run: |
