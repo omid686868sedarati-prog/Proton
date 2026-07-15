@@ -14,19 +14,16 @@ jobs:
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev
 
-    - name: Download KernelSU Next to Right Path
+    - name: Download KernelSU Next safely
       run: |
-        # حذف پوشه احتمالی قدیمی برای جلوگیری از تداخل
         rm -rf drivers/kernelsu drivers/KernelSU
-        # دانلود مستقیم سورس در مسیر مورد نیاز با حروف کوچک
-        git clone --depth=1 https://github.com drivers/kernelsu
+        mkdir -p drivers/kernelsu
+        curl -LSs "https://github.com" | tar -xz -C drivers/kernelsu --strip-components=1
 
     - name: Build Kernel
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
-        
-        # اجرای اسکریپت بومی پروژه برای ساخت خودکار کرنل
         chmod +x build_kernel.sh
         ./build_kernel.sh
         
