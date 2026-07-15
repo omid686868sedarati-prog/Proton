@@ -12,7 +12,7 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt update
-        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev
+        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3
 
     - name: Download KernelSU Next safely
       run: |
