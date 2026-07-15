@@ -14,6 +14,13 @@ jobs:
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3
 
+    - name: Download Proton Clang Safely
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/tc
+        PART1="https://github.com"
+        PART2="/kdrag0n/proton-clang"
+        git clone --depth=1 "${PART1}${PART2}" $GITHUB_WORKSPACE/tc/proton-clang
+
     - name: Download KernelSU Next safely
       run: |
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
@@ -26,12 +33,10 @@ jobs:
         FULL_URL="${PART1}${PART2}${PART3}"
         curl -LSs "$FULL_URL" | tar -xz -C drivers/kernelsu --strip-components=1
         
-        # حل مشکل تداخل مسیر فایل Kconfig اگزینوس
         if [ -f "drivers/kernelsu/kernel/Kconfig" ]; then
           cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
         fi
         
-        # ایجاد لینک‌های مجازی دقیق در تمام مسیرهای احتمالی مورد نیاز Makefile
         ln -sf kernelsu drivers/KernelSU
         ln -sf drivers/kernelsu KernelSU
 
@@ -39,15 +44,16 @@ jobs:
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
+        export PLATFORM_VERSION=11
+        export ANDROID_MAJOR_VERSION=r
+        export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
-        # تزریق سراسری متغیرها برای حل قطعی ارور -mlittle-endian در ابزارهای هاست
-        export CC=clang
-        export HOSTCC=clang
-        export HOSTCXX=clang++
+        export PATH=$GITHUB_WORKSPACE/tc/proton-clang/bin:$PATH
         
-        chmod +x build_kernel.sh
-        ./build_kernel.sh
+        make O=out exynos2100-r9sxxx_defconfig CC=clang HOSTCC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         
+        make -j$(nproc) O=out CC=clang HOSTCC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
+
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
       with:
