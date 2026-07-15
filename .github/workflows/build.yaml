@@ -12,7 +12,7 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt update
-        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3 clang-14 lld-14 llvm-14
+        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3 clang-14 lld-14 llvm-14 gcc-aarch64-linux-gnu
 
     - name: Generate KernelSU Next Locally
       run: |
@@ -46,12 +46,14 @@ jobs:
         export HOSTCC=clang-14
         export HOSTCXX=clang++-14
         
-        # Injecting flags to ignore non-standard header limitations
+        # معرفی کامپایلر متقاطع رسمی لینوکس برای باز کردن قفل فاز هدرها
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        
         export KCFLAGS="-Wno-error -fpermissive"
         export HOSTCFLAGS="-Wno-error"
         
-        make O=out exynos2100-r9sxxx_defconfig CC=clang-14 HOSTCC=clang-14
-        make -j$(nproc) O=out CC=clang-14 HOSTCC=clang-14 KCFLAGS="${KCFLAGS}" HOSTCFLAGS="${HOSTCFLAGS}" LD=ld.lld-14 AR=llvm-ar-14 NM=llvm-nm-14 OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14
+        make O=out exynos2100-r9sxxx_defconfig CC=clang-14 HOSTCC=clang-14 CROSS_COMPILE=aarch64-linux-gnu-
+        make -j$(nproc) O=out CC=clang-14 HOSTCC=clang-14 CROSS_COMPILE=aarch64-linux-gnu- KCFLAGS="${KCFLAGS}" HOSTCFLAGS="${HOSTCFLAGS}" LD=ld.lld-14 AR=llvm-ar-14 NM=llvm-nm-14 OBJCOPY=llvm-objcopy-14 OBJDUMP=llvm-objdump-14 STRIP=llvm-strip-14
 
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
