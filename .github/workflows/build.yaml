@@ -48,6 +48,8 @@ jobs:
         touch drivers/kernelsu/kernel/apk_sign.c
         touch drivers/kernelsu/kernel/core_hook.c
         touch drivers/kernelsu/kernel/su.c
+        
+        ln -sf drivers/kernelsu KernelSU
 
     - name: Build Kernel
       run: |
