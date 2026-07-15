@@ -17,7 +17,6 @@ jobs:
     - name: Download Proton Clang
       run: |
         mkdir -p $GITHUB_WORKSPACE/tc
-        # دانلود نسخه بهینه و سبک Proton Clang مخصوص کامپایل اگزینوس و اسنپ‌دراگون
         git clone --depth=1 https://github.com $GITHUB_WORKSPACE/tc/proton-clang
 
     - name: Build Kernel
@@ -25,18 +24,13 @@ jobs:
         export ARCH=arm64
         export SUBARCH=arm64
         
-        # معرفی مسیر Proton Clang به سرور
         export PATH=$GITHUB_WORKSPACE/tc/proton-clang/bin:$PATH
         
-        # متغیرهای استاندارد کامپایل با Proton Clang
         export CC=clang
         export CROSS_COMPILE=aarch64-linux-gnu-
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         
-        # ایجاد پوشه خروجی و لود کردن کانفیگ اگزینوس شما
         make O=out exynos2100-r9sxxx_defconfig
-        
-        # شروع عملیات کامپایل کرنل
         make -j$(nproc) O=out CC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-
 
     - name: Upload Kernel Image
