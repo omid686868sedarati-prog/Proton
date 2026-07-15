@@ -79,12 +79,11 @@ jobs:
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
         
-        # Completely bypass the broken configuration function inside the camera driver safely
+        # Inject missing macro definitions at the top of the broken camera driver file
         TARGET_CSI_FILE="drivers/media/platform/exynos/camera/sensor/csi2/is-hw-csi-v5_4.c"
         if [ -f "$TARGET_CSI_FILE" ]; then
           git checkout -- "$TARGET_CSI_FILE" 2>/dev/null || true
-          sed -i '/void is_hw_csi_set_phy_cfg/,/^}/ { /void is_hw_csi_set_phy_cfg/! { /^}/! d } }' "$TARGET_CSI_FILE"
-          sed -i 's/void is_hw_csi_set_phy_cfg.*/void is_hw_csi_set_phy_cfg(void *a, void *b, void *c, u32 d){} \/\/ bypassed/g' "$TARGET_CSI_FILE"
+          sed -i '1s/^/#define CAMERA_CSI_A_PHY_CFG_RSU 0\n#define CAMERA_CSI_A_PHY_CFG_USU1 0\n#define CAMERA_CSI_C_PHY_CFG_RSU 0\n#define CAMERA_CSI_C_PHY_CFG_USU1 0\n#define CAMERA_CSI_C_PHY_CFG_USU3 0\n/' "$TARGET_CSI_FILE"
         fi
         
         make exynos2100-r9sxxx_defconfig \
