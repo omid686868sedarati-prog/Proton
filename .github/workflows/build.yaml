@@ -17,7 +17,7 @@ jobs:
     - name: Download Proton Clang
       run: |
         mkdir -p $GITHUB_WORKSPACE/tc
-        git clone --depth=1 https://github.com $GITHUB_WORKSPACE/tc/proton-clang
+        git clone --depth=1 https://github.com/omid686868sedarati-prog/Proton $GITHUB_WORKSPACE/tc/proton-clang
 
     - name: Build Kernel
       run: |
