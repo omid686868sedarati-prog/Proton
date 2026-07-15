@@ -74,10 +74,11 @@ jobs:
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
         
-        make mrproper
+        make mrproper CROSS_COMPILE=aarch64-linux-gnu- || true
         
         make exynos2100-r9sxxx_defconfig \
           CC="$CC" \
+          CROSS_COMPILE=aarch64-linux-gnu- \
           HOSTCC="$HOSTCC" \
           HOSTCXX="$HOSTCXX" \
           HOSTLD="$HOSTLD" \
