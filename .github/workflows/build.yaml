@@ -14,12 +14,14 @@ jobs:
         sudo apt update
         sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3
 
-    - name: Download Proton Clang Safely
+    - name: Download Google Clang Safely
       run: |
         mkdir -p $GITHUB_WORKSPACE/tc
-        PART1="https://github.com"
-        PART2="/kdrag0n/proton-clang"
-        git clone --depth=1 "${PART1}${PART2}" $GITHUB_WORKSPACE/tc/proton-clang
+        PART1="https://googlesource.com"
+        PART2="/platform/prebuilts/clang/host/linux-x86/+archive"
+        PART3="/refs/heads/main/clang-r416183b.tar.gz"
+        mkdir -p $GITHUB_WORKSPACE/tc/clang
+        curl -LSs "${PART1}${PART2}${PART3}" | tar -xz -C $GITHUB_WORKSPACE/tc/clang
 
     - name: Download KernelSU Next safely
       run: |
@@ -28,7 +30,7 @@ jobs:
         
         PART1="https://github.com"
         PART2="/KernelSU-Next/KernelSU-Next"
-        PART3="/archive/refs/heads/dev.tar.gz"
+        PART3="/archive/refs/heads/main.tar.gz"
         
         FULL_URL="${PART1}${PART2}${PART3}"
         curl -LSs "$FULL_URL" | tar -xz -C drivers/kernelsu --strip-components=1
@@ -48,12 +50,11 @@ jobs:
         export ANDROID_MAJOR_VERSION=r
         export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
-        export PATH=$GITHUB_WORKSPACE/tc/proton-clang/bin:$PATH
+        export PATH=$GITHUB_WORKSPACE/tc/clang/bin:$PATH
         
-        make O=out exynos2100-r9sxxx_defconfig CC=clang HOSTCC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        make O=out exynos2100-r9sxxx_defconfig CC=clang
+        make -j$(nproc) O=out CC=clang
         
-        make -j$(nproc) O=out CC=clang HOSTCC=clang CROSS_COMPILE=aarch64-linux-gnu- CROSS_COMPILE_ARM32=arm-linux-gnueabi- AR=llvm-ar NM=llvm-nm OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump STRIP=llvm-strip
-
     - name: Upload Kernel Image
       uses: actions/upload-artifact@v4
       with:
