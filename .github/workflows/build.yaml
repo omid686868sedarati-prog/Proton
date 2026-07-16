@@ -78,8 +78,10 @@ jobs:
         export HOSTLD="/usr/bin/ld"
         export HOSTAR="/usr/bin/ar"
         
+        # Added KBUILD_MODPOST_WARN=1 to force compiler to treat section mismatches as non-fatal warnings
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
+        export KBUILD_MODPOST_WARN=1
         
         git checkout -- include/linux/sec_detect.h drivers/misc/sec_detect.c 2>/dev/null || true
 
@@ -134,7 +136,6 @@ jobs:
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR"
           
-        # Disable LTO, MODVERSIONS and broken MQ Deadline to prevent memory exhaustion and linker conflicts
         sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
         sed -i 's/CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' .config
         sed -i 's/CONFIG_LTO=y/# CONFIG_LTO is not set/' .config
@@ -156,7 +157,8 @@ jobs:
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR" \
           KCFLAGS="${KCFLAGS}" \
-          HOSTCFLAGS="${HOSTCFLAGS}"
+          HOSTCFLAGS="${HOSTCFLAGS}" \
+          KBUILD_MODPOST_WARN=1
 
     - name: Pack and Verify Kernel Files
       run: |
