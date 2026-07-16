@@ -125,7 +125,9 @@ jobs:
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR"
           
+        # Disable MODVERSIONS and broken MQ Deadline to avoid linker conflicts
         sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
+        sed -i 's/CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' .config
         
         make \
           CC="$CC" \
