@@ -157,14 +157,8 @@ jobs:
     - name: Pack and Verify Kernel Files
       run: |
         mkdir -p $GITHUB_WORKSPACE/output
-        if [ -f "arch/arm64/boot/Image.gz" ]; then
-          cp arch/arm64/boot/Image.gz $GITHUB_WORKSPACE/output/
-        elif [ -f "arch/arm64/boot/Image" ]; then
-          cp arch/arm64/boot/Image $GITHUB_WORKSPACE/output/
-        fi
-        if [ -f "arch/arm64/boot/dtb.img" ]; then
-          cp arch/arm64/boot/dtb.img $GITHUB_WORKSPACE/output/
-        fi
+        find arch/arm64/boot/ -maxdepth 1 -name "Image*" -exec cp {} $GITHUB_WORKSPACE/output/ \;
+        find arch/arm64/boot/dts/ -name "*.img" -exec cp {} $GITHUB_WORKSPACE/output/ \;
 
     - name: Upload Kernel Artifacts
       uses: actions/upload-artifact@v4
