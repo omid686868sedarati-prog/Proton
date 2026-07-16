@@ -21,7 +21,6 @@ jobs:
         PART2="/kdrag0n/proton-clang"
         git clone --depth=1 "${PART1}${PART2}" $GITHUB_WORKSPACE/tc/proton-clang
         
-        # Globally link llvm-nm into system binary path to fix the build scripts warning safely
         sudo ln -sf $GITHUB_WORKSPACE/tc/proton-clang/bin/llvm-nm /usr/bin/llvm-nm
 
     - name: Generate KernelSU Next Locally
@@ -82,47 +81,39 @@ jobs:
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
         
-        # Restore any previous modified files to keep original structures intact
         git checkout -- include/linux/sec_detect.h drivers/misc/sec_detect.c 2>/dev/null || true
 
-        # Inject missing macro definitions for CSI camera driver
         TARGET_CSI_FILE="drivers/media/platform/exynos/camera/sensor/csi2/is-hw-csi-v5_4.c"
         if [ -f "$TARGET_CSI_FILE" ]; then
           git checkout -- "$TARGET_CSI_FILE" 2>/dev/null || true
           sed -i '1s/^/#define CAMERA_CSI_A_PHY_CFG_RSU 0\n#define CAMERA_CSI_A_PHY_CFG_USU1 0\n#define CAMERA_CSI_C_PHY_CFG_RSU 0\n#define CAMERA_CSI_C_PHY_CFG_USU1 0\n#define CAMERA_CSI_C_PHY_CFG_USU3 0\n/' "$TARGET_CSI_FILE"
         fi
         
-        # Inject missing macro definitions for Tele OIS camera driver configuration
         TARGET_VENDER_FILE="drivers/media/platform/exynos/camera/vendor/mcd/is-sec-define.c"
         if [ -f "$TARGET_VENDER_FILE" ]; then
           sed -i '1s/^/#define TELE_OIS_TILT_ROM_ID_V1 1\n#define TELE_OIS_TILT_ROM_ID_V2 2\n#define TELE_OIS_TILT_ROM_ID_V3 3\n#define TELE_OIS_ROM_ID_V1 4\n#define TELE_OIS_ROM_ID_V2 5\n/' "$TARGET_VENDER_FILE"
         fi
         
-        # Inject missing macro definition for Broadcom Sensor Hub firmware driver
         TARGET_SENSOR_FILE="drivers/sensorhub/brcm/ssp_firmware.c"
         if [ -f "$TARGET_SENSOR_FILE" ]; then
           sed -i '1s/^/#define SSP_FIRMWARE_REVISION_BCM_R_UNBOUND 0\n/' "$TARGET_SENSOR_FILE"
         fi
         
-        # Inject missing firmware patch array reference for Sensor Hub bbd driver
         TARGET_BBD_FILE="drivers/sensorhub/brcm/bbdpl/bbd.c"
         if [ -f "$TARGET_BBD_FILE" ]; then
           sed -i '1s/^/#define bbd_patch_R_unbound bbd_patch_R_r9s\n/' "$TARGET_BBD_FILE"
         fi
 
-        # Inject missing PANEL_HMD sequence indexes for Exynos fbdev panel driver
         TARGET_PANEL_FILE="drivers/video/fbdev/exynos/panel/panel.h"
         if [ -f "$TARGET_PANEL_FILE" ]; then
           sed -i '/PANEL_SET_BL_SEQ,/i \	PANEL_HMD_ON_SEQ,\n\	PANEL_HMD_OFF_SEQ,\n\	PANEL_HMD_BL_SEQ,' "$TARGET_PANEL_FILE"
         fi
 
-        # Safely convert the function declaration into a static inline returning false inside include/linux/sec_detect.h
         TARGET_DETECT_FILE="include/linux/sec_detect.h"
         if [ -f "$TARGET_DETECT_FILE" ]; then
           sed -i 's/bool sec_feat_uses_rbin(void);/static inline bool sec_feat_uses_rbin(void){ return false; }/g' "$TARGET_DETECT_FILE"
         fi
 
-        # Safely comment out the definition of sec_feat_uses_rbin inside drivers/misc/sec_detect.c to prevent redefinition errors
         TARGET_DETECT_C_FILE="drivers/misc/sec_detect.c"
         if [ -f "$TARGET_DETECT_C_FILE" ]; then
           sed -i 's/bool sec_feat_uses_rbin(void).*/\/\/ commented out definition/g' "$TARGET_DETECT_C_FILE"
@@ -143,7 +134,6 @@ jobs:
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR"
           
-        # Disable MODVERSIONS and broken MQ Deadline to avoid linker conflicts
         sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
         sed -i 's/CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' .config
         
@@ -164,8 +154,20 @@ jobs:
           KCFLAGS="${KCFLAGS}" \
           HOSTCFLAGS="${HOSTCFLAGS}"
 
-    - name: Upload Kernel Image
+    - name: Pack and Verify Kernel Files
+      run: |
+        mkdir -p $GITHUB_WORKSPACE/output
+        if [ -f "arch/arm64/boot/Image.gz" ]; then
+          cp arch/arm64/boot/Image.gz $GITHUB_WORKSPACE/output/
+        elif [ -f "arch/arm64/boot/Image" ]; then
+          cp arch/arm64/boot/Image $GITHUB_WORKSPACE/output/
+        fi
+        if [ -f "arch/arm64/boot/dtb.img" ]; then
+          cp arch/arm64/boot/dtb.img $GITHUB_WORKSPACE/output/
+        fi
+
+    - name: Upload Kernel Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: Kernel-Image-Exynos2100
-        path: arch/arm64/boot/Image*
+        name: Kernel-Exynos2100-Final
+        path: output/*
