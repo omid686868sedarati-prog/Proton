@@ -60,7 +60,6 @@ jobs:
         export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
         export TC_DIR=$GITHUB_WORKSPACE/tc/proton-clang/bin
-        export PATH=$TC_DIR:$PATH
         
         export CC="$TC_DIR/clang"
         export LD="$TC_DIR/ld.lld"
