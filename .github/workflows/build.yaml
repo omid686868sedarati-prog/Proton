@@ -60,6 +60,7 @@ jobs:
         export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
         
         export TC_DIR=$GITHUB_WORKSPACE/tc/proton-clang/bin
+        export PATH=$TC_DIR:$PATH
         
         export CC="$TC_DIR/clang"
         export LD="$TC_DIR/ld.lld"
@@ -76,7 +77,7 @@ jobs:
         export HOSTLD="/usr/bin/ld"
         export HOSTAR="/usr/bin/ar"
         
-        export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
+        export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration -Dsec_feat_uses_rbin=0"
         export HOSTCFLAGS="-Wno-error"
         
         # Inject missing macro definitions for CSI camera driver
