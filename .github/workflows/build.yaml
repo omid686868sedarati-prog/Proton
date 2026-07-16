@@ -76,7 +76,7 @@ jobs:
         export HOSTLD="/usr/bin/ld"
         export HOSTAR="/usr/bin/ar"
         
-        export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration -Dsec_feat_uses_rbin=0"
+        export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
         
         # Inject missing macro definitions for CSI camera driver
@@ -108,6 +108,12 @@ jobs:
         TARGET_PANEL_FILE="drivers/video/fbdev/exynos/panel/panel.h"
         if [ -f "$TARGET_PANEL_FILE" ]; then
           sed -i '/PANEL_SET_BL_SEQ,/i \	PANEL_HMD_ON_SEQ,\n\	PANEL_HMD_OFF_SEQ,\n\	PANEL_HMD_BL_SEQ,' "$TARGET_PANEL_FILE"
+        fi
+
+        # Force sec_feat_uses_rbin function to safely return false globally
+        TARGET_DETECT_FILE="include/linux/sec_detect.h"
+        if [ -f "$TARGET_DETECT_FILE" ]; then
+          sed -i 's/bool sec_feat_uses_rbin(void);/static inline bool sec_feat_uses_rbin(void){ return false; }/g' "$TARGET_DETECT_FILE"
         fi
         
         make exynos2100-r9sxxx_defconfig \
