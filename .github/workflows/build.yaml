@@ -78,10 +78,8 @@ jobs:
         export HOSTLD="/usr/bin/ld"
         export HOSTAR="/usr/bin/ar"
         
-        # Added KBUILD_MODPOST_WARN=1 to force compiler to treat section mismatches as non-fatal warnings
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
-        export KBUILD_MODPOST_WARN=1
         
         git checkout -- include/linux/sec_detect.h drivers/misc/sec_detect.c 2>/dev/null || true
 
@@ -160,14 +158,27 @@ jobs:
           HOSTCFLAGS="${HOSTCFLAGS}" \
           KBUILD_MODPOST_WARN=1
 
-    - name: Pack and Verify Kernel Files
+    - name: Package with AnyKernel3
       run: |
-        mkdir -p $GITHUB_WORKSPACE/output
-        find arch/arm64/boot/ -maxdepth 2 -name "Image*" -exec cp {} $GITHUB_WORKSPACE/output/ \;
-        find arch/arm64/boot/ -maxdepth 3 -name "*.img" -exec cp {} $GITHUB_WORKSPACE/output/ \;
+        git clone --depth=1 https://github.com $GITHUB_WORKSPACE/AnyKernel3
+        
+        # Configure AnyKernel3 properties for Galaxy S21 (Exynos 2100)
+        sed -i 's/kernel.string=.*/kernel.string=Proton Kernel with KernelSU Next/g' $GITHUB_WORKSPACE/AnyKernel3/anykernel.sh
+        sed -i 's/block=.*/block=\/dev\/block\/by-name\/boot/g' $GITHUB_WORKSPACE/AnyKernel3/anykernel.sh
+        sed -i 's/is_slot_device=.*/is_slot_device=0/g' $GITHUB_WORKSPACE/AnyKernel3/anykernel.sh
+        
+        # Copy compiled image files into flashable zip structure
+        if [ -f "arch/arm64/boot/Image.gz" ]; then
+          cp arch/arm64/boot/Image.gz $GITHUB_WORKSPACE/AnyKernel3/
+        elif [ -f "arch/arm64/boot/Image" ]; then
+          cp arch/arm64/boot/Image $GITHUB_WORKSPACE/AnyKernel3/
+        fi
+        
+        cd $GITHUB_WORKSPACE/AnyKernel3
+        zip -r9 $GITHUB_WORKSPACE/Flashable-Kernel-Exynos2100.zip *
 
-    - name: Upload Kernel Artifacts
+    - name: Upload Flashable Zip
       uses: actions/upload-artifact@v4
       with:
-        name: Kernel-Exynos2100-Final
-        path: output/*
+        name: Flashable-Kernel-S21
+        path: Flashable-Kernel-Exynos2100.zip
