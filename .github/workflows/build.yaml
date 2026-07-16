@@ -1,172 +1,37 @@
-name: Build Kernel with KernelSU Next
+name: Patch Proton Kernel with KernelSU Next
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  patch:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Kernel Source
+    - name: Checkout Repo
       uses: actions/checkout@v4
 
-    - name: Set up Build Environment
-      run: |
-        sudo apt update
-        sudo apt install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf libelf-dev libssl-dev libxml2-utils lzop rsync zip libssl-dev python3 python-is-python3
-
-    - name: Download Proton Clang Safely
-      run: |
-        mkdir -p $GITHUB_WORKSPACE/tc
-        PART1="https://github.com"
-        PART2="/kdrag0n/proton-clang"
-        git clone --depth=1 "${PART1}${PART2}" $GITHUB_WORKSPACE/tc/proton-clang
-        
-        sudo ln -sf $GITHUB_WORKSPACE/tc/proton-clang/bin/llvm-nm /usr/bin/llvm-nm
-
-    - name: Generate KernelSU Next Locally
-      run: |
-        rm -rf drivers/kernelsu drivers/KernelSU KernelSU
-        mkdir -p drivers/kernelsu/kernel
-        
-        cat << 'EOF' > drivers/kernelsu/Makefile
-        obj-y += kernel/
-        EOF
-        
-        cat << 'EOF' > drivers/kernelsu/kernel/Makefile
-        obj-y += allowlist.o auto_attach.o avatar.o apk_sign.o core_hook.o su.o
-        EOF
-        
-        cat << 'EOF' > drivers/kernelsu/kernel/Kconfig
-        config KERNELSU
-        	bool "Enable KernelSU Next"
-        	default y
-        EOF
-        
-        cp drivers/kernelsu/kernel/Kconfig drivers/kernelsu/Kconfig
-        
-        touch drivers/kernelsu/kernel/allowlist.c
-        touch drivers/kernelsu/kernel/auto_attach.c
-        touch drivers/kernelsu/kernel/avatar.c
-        touch drivers/kernelsu/kernel/apk_sign.c
-        touch drivers/kernelsu/kernel/core_hook.c
-        touch drivers/kernelsu/kernel/su.c
-        
-        ln -sf drivers/kernelsu KernelSU
-
-    - name: Build Kernel
-      run: |
-        export ARCH=arm64
-        export SUBARCH=arm64
-        export PLATFORM_VERSION=11
-        export ANDROID_MAJOR_VERSION=r
-        export SEC_BUILD_CONF_VENDOR_BUILD_OS=13
-        
-        export TC_DIR=$GITHUB_WORKSPACE/tc/proton-clang/bin
-        
-        export CC="$TC_DIR/clang"
-        export LD="$TC_DIR/ld.lld"
-        export AR="$TC_DIR/llvm-ar"
-        export NM="$TC_DIR/llvm-nm"
-        export OBJCOPY="$TC_DIR/llvm-objcopy"
-        export OBJDUMP="$TC_DIR/llvm-objdump"
-        export STRIP="$TC_DIR/llvm-strip"
-        export CROSS_COMPILE="$TC_DIR/aarch64-linux-gnu-"
-        export CROSS_COMPILE_ARM32="$TC_DIR/arm-linux-gnueabi-"
-        
-        export HOSTCC="/usr/bin/gcc"
-        export HOSTCXX="/usr/bin/g++"
-        export HOSTLD="/usr/bin/ld"
-        export HOSTAR="/usr/bin/ar"
-        
-        export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
-        export HOSTCFLAGS="-Wno-error"
-        
-        git checkout -- include/linux/sec_detect.h drivers/misc/sec_detect.c 2>/dev/null || true
-
-        TARGET_CSI_FILE="drivers/media/platform/exynos/camera/sensor/csi2/is-hw-csi-v5_4.c"
-        if [ -f "$TARGET_CSI_FILE" ]; then
-          git checkout -- "$TARGET_CSI_FILE" 2>/dev/null || true
-          sed -i '1s/^/#define CAMERA_CSI_A_PHY_CFG_RSU 0\n#define CAMERA_CSI_A_PHY_CFG_USU1 0\n#define CAMERA_CSI_C_PHY_CFG_RSU 0\n#define CAMERA_CSI_C_PHY_CFG_USU1 0\n#define CAMERA_CSI_C_PHY_CFG_USU3 0\n/' "$TARGET_CSI_FILE"
-        fi
-        
-        TARGET_VENDER_FILE="drivers/media/platform/exynos/camera/vendor/mcd/is-sec-define.c"
-        if [ -f "$TARGET_VENDER_FILE" ]; then
-          sed -i '1s/^/#define TELE_OIS_TILT_ROM_ID_V1 1\n#define TELE_OIS_TILT_ROM_ID_V2 2\n#define TELE_OIS_TILT_ROM_ID_V3 3\n#define TELE_OIS_ROM_ID_V1 4\n#define TELE_OIS_ROM_ID_V2 5\n/' "$TARGET_VENDER_FILE"
-        fi
-        
-        TARGET_SENSOR_FILE="drivers/sensorhub/brcm/ssp_firmware.c"
-        if [ -f "$TARGET_SENSOR_FILE" ]; then
-          sed -i '1s/^/#define SSP_FIRMWARE_REVISION_BCM_R_UNBOUND 0\n/' "$TARGET_SENSOR_FILE"
-        fi
-        
-        TARGET_BBD_FILE="drivers/sensorhub/brcm/bbdpl/bbd.c"
-        if [ -f "$TARGET_BBD_FILE" ]; then
-          sed -i '1s/^/#define bbd_patch_R_unbound bbd_patch_R_r9s\n/' "$TARGET_BBD_FILE"
-        fi
-
-        TARGET_PANEL_FILE="drivers/video/fbdev/exynos/panel/panel.h"
-        if [ -f "$TARGET_PANEL_FILE" ]; then
-          sed -i '/PANEL_SET_BL_SEQ,/i \	PANEL_HMD_ON_SEQ,\n\	PANEL_HMD_OFF_SEQ,\n\	PANEL_HMD_BL_SEQ,' "$TARGET_PANEL_FILE"
-        fi
-
-        TARGET_DETECT_FILE="include/linux/sec_detect.h"
-        if [ -f "$TARGET_DETECT_FILE" ]; then
-          sed -i 's/bool sec_feat_uses_rbin(void);/static inline bool sec_feat_uses_rbin(void){ return false; }/g' "$TARGET_DETECT_FILE"
-        fi
-
-        TARGET_DETECT_C_FILE="drivers/misc/sec_detect.c"
-        if [ -f "$TARGET_DETECT_C_FILE" ]; then
-          sed -i 's/bool sec_feat_uses_rbin(void).*/\/\/ commented out definition/g' "$TARGET_DETECT_C_FILE"
-        fi
-        
-        make exynos2100-r9sxxx_defconfig \
-          CC="$CC" \
-          LD="$LD" \
-          AR="$AR" \
-          NM="$NM" \
-          OBJCOPY="$OBJCOPY" \
-          OBJDUMP="$OBJDUMP" \
-          STRIP="$STRIP" \
-          CROSS_COMPILE="$CROSS_COMPILE" \
-          CROSS_COMPILE_ARM32="$CROSS_COMPILE_ARM32" \
-          HOSTCC="$HOSTCC" \
-          HOSTCXX="$HOSTCXX" \
-          HOSTLD="$HOSTLD" \
-          HOSTAR="$HOSTAR"
-          
-        # Enable ThinLTO to comply with Samsung bootloader layout requirements without high RAM usage
-        sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
-        sed -i 's/CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' .config
-        sed -i 's/# CONFIG_LTO is not set/CONFIG_LTO=y/' .config
-        sed -i 's/# CONFIG_LTO_CLANG is not set/CONFIG_LTO_CLANG=y/' .config
-        sed -i 's/# CONFIG_THINLTO is not set/CONFIG_THINLTO=y/' .config
-        
-        make -j$(nproc) \
-          CC="$CC" \
-          LD="$LD" \
-          AR="$AR" \
-          NM="$NM" \
-          OBJCOPY="$OBJCOPY" \
-          OBJDUMP="$OBJDUMP" \
-          STRIP="$STRIP" \
-          CROSS_COMPILE="$CROSS_COMPILE" \
-          CROSS_COMPILE_ARM32="$CROSS_COMPILE_ARM32" \
-          HOSTCC="$HOSTCC" \
-          HOSTCXX="$HOSTCXX" \
-          HOSTLD="$HOSTLD" \
-          HOSTAR="$HOSTAR" \
-          KCFLAGS="${KCFLAGS}" \
-          HOSTCFLAGS="${HOSTCFLAGS}" \
-          KBUILD_MODPOST_WARN=1
-
-    - name: Pack and Verify Kernel Files
+    - name: Download Boot Image and Patch Tools
       run: |
         mkdir -p $GITHUB_WORKSPACE/output
-        find arch/arm64/boot/ -maxdepth 2 -name "Image*" -exec cp {} $GITHUB_WORKSPACE/output/ \;
-        find arch/arm64/boot/ -maxdepth 3 -name "*.img" -exec cp {} $GITHUB_WORKSPACE/output/ \;
+        
+        # Download the official KernelSU Patcher script
+        curl -o ksu_patcher https://githubusercontent.com
+        chmod +x ksu_patcher
+        
+        # ⚠️ LINK GENERATION: Place your temporary direct boot.img download link below
+        # For example: curl -L -o boot.img "https://your-upload-site.com"
+        curl -L -o boot.img "https://github.io" || touch boot.img
 
-    - name: Upload Kernel Artifacts
+    - name: Execute Patch for Linux 5.4
+      run: |
+        if [ -f "boot.img" ] && [ -s "boot.img" ]; then
+          ./ksu_patcher -b boot.img -o $GITHUB_WORKSPACE/output/patched_boot.img
+        else
+          echo "Error: boot.img is missing or empty. Please ensure the link in the previous step is correct."
+          exit 1
+        fi
+
+    - name: Upload Patched Boot Image
       uses: actions/upload-artifact@v4
       with:
-        name: Kernel-Exynos2100-Final
-        path: output/*
+        name: Patched-Proton-Kernel
+        path: output/patched_boot.img
