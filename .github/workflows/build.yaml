@@ -82,6 +82,9 @@ jobs:
         export KCFLAGS="-Wno-error -fpermissive -Wno-implicit-function-declaration"
         export HOSTCFLAGS="-Wno-error"
         
+        # Restore any previous modified files to keep original structures intact
+        git checkout -- include/linux/sec_detect.h drivers/misc/sec_detect.c 2>/dev/null || true
+
         # Inject missing macro definitions for CSI camera driver
         TARGET_CSI_FILE="drivers/media/platform/exynos/camera/sensor/csi2/is-hw-csi-v5_4.c"
         if [ -f "$TARGET_CSI_FILE" ]; then
@@ -113,22 +116,16 @@ jobs:
           sed -i '/PANEL_SET_BL_SEQ,/i \	PANEL_HMD_ON_SEQ,\n\	PANEL_HMD_OFF_SEQ,\n\	PANEL_HMD_BL_SEQ,' "$TARGET_PANEL_FILE"
         fi
 
-        # Fully clear and redefine include/linux/sec_detect.h header to ensure sec_feat_uses_rbin returns false cleanly
+        # Safely convert the function declaration into a static inline returning false inside include/linux/sec_detect.h
         TARGET_DETECT_FILE="include/linux/sec_detect.h"
         if [ -f "$TARGET_DETECT_FILE" ]; then
-          cat << 'EOF' > "$TARGET_DETECT_FILE"
-          #ifndef _LINUX_SEC_DETECT_H
-          #define _LINUX_SEC_DETECT_H
-          #include <linux/types.h>
-          static inline bool sec_feat_uses_rbin(void) { return false; }
-          #endif
-        EOF
+          sed -i 's/bool sec_feat_uses_rbin(void);/static inline bool sec_feat_uses_rbin(void){ return false; }/g' "$TARGET_DETECT_FILE"
         fi
 
-        # Erase the conflicting original non-inline function declaration block from the driver file entirely
+        # Safely comment out the definition of sec_feat_uses_rbin inside drivers/misc/sec_detect.c to prevent redefinition errors
         TARGET_DETECT_C_FILE="drivers/misc/sec_detect.c"
         if [ -f "$TARGET_DETECT_C_FILE" ]; then
-          sed -i 's/bool sec_feat_uses_rbin(void).*/\/\/ removed/g' "$TARGET_DETECT_C_FILE"
+          sed -i 's/bool sec_feat_uses_rbin(void).*/\/\/ commented out definition/g' "$TARGET_DETECT_C_FILE"
         fi
         
         make exynos2100-r9sxxx_defconfig \
