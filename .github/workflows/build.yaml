@@ -134,11 +134,12 @@ jobs:
           HOSTLD="$HOSTLD" \
           HOSTAR="$HOSTAR"
           
+        # Enable ThinLTO to comply with Samsung bootloader layout requirements without high RAM usage
         sed -i 's/CONFIG_MQ_IOSCHED_DEADLINE=y/# CONFIG_MQ_IOSCHED_DEADLINE is not set/' .config
         sed -i 's/CONFIG_MODVERSIONS=y/# CONFIG_MODVERSIONS is not set/' .config
-        sed -i 's/CONFIG_LTO=y/# CONFIG_LTO is not set/' .config
-        sed -i 's/CONFIG_LTO_CLANG=y/# CONFIG_LTO_CLANG is not set/' .config
-        sed -i 's/CONFIG_THINLTO=y/# CONFIG_THINLTO is not set/' .config
+        sed -i 's/# CONFIG_LTO is not set/CONFIG_LTO=y/' .config
+        sed -i 's/# CONFIG_LTO_CLANG is not set/CONFIG_LTO_CLANG=y/' .config
+        sed -i 's/# CONFIG_THINLTO is not set/CONFIG_THINLTO=y/' .config
         
         make -j$(nproc) \
           CC="$CC" \
@@ -158,27 +159,14 @@ jobs:
           HOSTCFLAGS="${HOSTCFLAGS}" \
           KBUILD_MODPOST_WARN=1
 
-    - name: Package with AnyKernel3
+    - name: Pack and Verify Kernel Files
       run: |
-        git clone --depth=1 https://github.com $GITHUB_WORKSPACE/AnyKernel3
-        
-        # Configure AnyKernel3 properties for Galaxy S21 (Exynos 2100)
-        sed -i 's/kernel.string=.*/kernel.string=Proton Kernel with KernelSU Next/g' $GITHUB_WORKSPACE/AnyKernel3/anykernel.sh
-        sed -i 's/block=.*/block=\/dev\/block\/by-name\/boot/g' $GITHUB_WORKSPACE/AnyKernel3/anykernel.sh
-        sed -i 's/is_slot_device=.*/is_slot_device=0/g' $GITHUB_WORKSPACE/AnyKernel3/anykernel.sh
-        
-        # Copy compiled image files into flashable zip structure
-        if [ -f "arch/arm64/boot/Image.gz" ]; then
-          cp arch/arm64/boot/Image.gz $GITHUB_WORKSPACE/AnyKernel3/
-        elif [ -f "arch/arm64/boot/Image" ]; then
-          cp arch/arm64/boot/Image $GITHUB_WORKSPACE/AnyKernel3/
-        fi
-        
-        cd $GITHUB_WORKSPACE/AnyKernel3
-        zip -r9 $GITHUB_WORKSPACE/Flashable-Kernel-Exynos2100.zip *
+        mkdir -p $GITHUB_WORKSPACE/output
+        find arch/arm64/boot/ -maxdepth 2 -name "Image*" -exec cp {} $GITHUB_WORKSPACE/output/ \;
+        find arch/arm64/boot/ -maxdepth 3 -name "*.img" -exec cp {} $GITHUB_WORKSPACE/output/ \;
 
-    - name: Upload Flashable Zip
+    - name: Upload Kernel Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: Flashable-Kernel-S21
-        path: Flashable-Kernel-Exynos2100.zip
+        name: Kernel-Exynos2100-Final
+        path: output/*
