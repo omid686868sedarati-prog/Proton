@@ -16,9 +16,13 @@ jobs:
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
-    - name: Create Missing KernelSU Files
+    - name: Force Clean and Create Missing KernelSU Files
       run: |
-        # ساخت فایلهای مجازی برای دور زدن خطای Kconfig
+        # حذف اجباری پوشه یا ساب‌ماژول قفل‌شده قبلی از دیتابیس گیت و دیسک
+        git rm -f drivers/kernelsu 2>/dev/null || true
+        rm -rf drivers/kernelsu
+        
+        # ساخت مجدد مسیر به صورت کاملاً تمیز
         mkdir -p drivers/kernelsu/kernel
         touch drivers/kernelsu/kernel/Kconfig
         echo "obj-y +=" > drivers/kernelsu/kernel/Makefile
