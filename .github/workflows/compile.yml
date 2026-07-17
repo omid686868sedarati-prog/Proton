@@ -1,139 +1,90 @@
- CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_ip.o
-make[1]: *** Waiting for unfinished jobs....
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_custom_gpio.o
-  CC      drivers/net/dummy.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_custom_sec.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_custom_gpio.o
-  CC [M]  drivers/net/usb/smsc95xx.o
-  AR      drivers/net/wireless/broadcom/built-in.a
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_custom_sec.o
-  CC [M]  drivers/net/usb/net1080.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux.o
-  CC [M]  drivers/net/usb/cdc_ncm.o
-  CC      drivers/net/mii.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_sched.o
-  CC      drivers/net/Space.o
-  AR      drivers/net/usb/built-in.a
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_sched.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_cfg80211.o
-  CC      drivers/net/loopback.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_cfg80211.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_wq.o
-  CC      drivers/net/tun.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_wq.o
-  CC      drivers/net/veth.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/aiutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/aiutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcmevent.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcmevent.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcmutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcmutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcmwifi_channels.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcmwifi_channels.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/hndpmu.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/hndpmu.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/linux_osl.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/linux_pkt.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/linux_osl.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/sbutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/linux_pkt.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/siutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/sbutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_android.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/siutils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfg80211.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_android.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfgscan.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfg80211.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfgp2p.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfgscan.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfgvif.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfgp2p.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfg_btcoex.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfgvif.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wldev_common.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfg_btcoex.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_linux_mon.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_roam.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wldev_common.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_platdev.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_linux_mon.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_pktdump.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_roam.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/hnd_pktq.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/hnd_pktpool.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_platdev.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_custom_cis.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_pktdump.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_debug.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/hnd_pktq.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_debug_linux.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/hnd_pktpool.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_mschdbg.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_custom_cis.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_dbg_ring.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_debug.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcmstdlib_s.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_debug_linux.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_exportfs.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_mschdbg.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfgnan.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_dbg_ring.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcmstdlib_s.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcmbloom.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcmxtlv.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_exportfs.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/frag.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfgnan.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_tx.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcmbloom.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcmxtlv.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfgdbg.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/frag.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_pcie.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_tx.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_pcie_linux.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfgdbg.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/pcie_core.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_rx.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_flowring.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_pcie.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_pcie_linux.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_msgbuf.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/pcie_core.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_linux_lb.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_flowring.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_cfgvendor.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_msgbuf.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcm_app_utils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_linux_lb.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_custom_memprealloc.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_custom_exynos.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wb_regon_coordinator.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_cfgvendor.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_rtt.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcm_app_utils.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_bam.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_pktlog.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/bcm_l2_filter.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_custom_memprealloc.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_bitpack.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_custom_exynos.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/wl_bigdata.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_rtt.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_event_log_filter.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_bam.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_statlog.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_pktlog.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/bcm_l2_filter.o
-  LD [M]  drivers/net/wireless/broadcom/bcmdhd_101_16/dhd_bcm4375.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_bitpack.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/wl_bigdata.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_event_log_filter.o
-  CC [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_statlog.o
-  LD [M]  drivers/net/wireless/broadcom/bcmdhd_101_18/dhd_bcm4389.o
-  AR      drivers/net/wireless/built-in.a
-  AR      drivers/net/built-in.a
-make: *** [Makefile:1872: drivers] Error 2
-Error: Process completed with exit code 2.
+name: Proton Plus Kernel Compiler
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Kernel Source
+      uses: actions/checkout@v4
+
+    - name: Set up Build Environment
+      run: |
+        sudo apt update
+        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
+        sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
+
+    - name: Force Clean and Create Multi-Path Dummy Files
+      run: |
+        git rm -f drivers/kernelsu 2>/dev/null || true
+        git rm -f drivers/KernelSU 2>/dev/null || true
+        git rm -f KernelSU 2>/dev/null || true
+        rm -rf drivers/kernelsu drivers/KernelSU KernelSU
+        
+        mkdir -p drivers/kernelsu/kernel
+        echo "obj-y +=" > drivers/kernelsu/Makefile
+        echo "obj-y +=" > drivers/kernelsu/kernel/Makefile
+        echo "# Dummy" > drivers/kernelsu/Kconfig
+        echo "# Dummy" > drivers/kernelsu/kernel/Kconfig
+        
+        mkdir -p drivers/KernelSU/kernel
+        echo "obj-y +=" > drivers/KernelSU/Makefile
+        echo "obj-y +=" > drivers/KernelSU/kernel/Makefile
+        echo "# Dummy" > drivers/KernelSU/Kconfig
+        echo "# Dummy" > drivers/KernelSU/kernel/Kconfig
+
+        mkdir -p KernelSU/kernel
+        echo "obj-y +=" > KernelSU/Makefile
+        echo "obj-y +=" > KernelSU/kernel/Makefile
+
+    - name: Compile Kernel
+      run: |
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        export CC=clang
+        export LD=ld.lld
+        
+        export KCFLAGS="-w -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
+        
+        if [ -f arch/arm64/configs/proton_defconfig ]; then
+            make proton_defconfig
+        elif [ -f arch/arm64/configs/exynos2100_defconfig ]; then
+            make exynos2100_defconfig
+        elif [ -f arch/arm64/configs/vendor_defconfig ]; then
+            make vendor_defconfig
+        else
+            CONF=$(ls arch/arm64/configs/ | grep _defconfig | head -n 1)
+            make $CONF
+        fi
+        
+        make -j$(nproc) || make
+
+    - name: Package with AnyKernel3
+      run: |
+        curl -LO "https://github.com"
+        unzip master.zip
+        mv AnyKernel3-master AnyKernel
+        
+        if [ -f arch/arm64/boot/Image.gz-dtb ]; then
+            cp arch/arm64/boot/Image.gz-dtb AnyKernel/
+        elif [ -f arch/arm64/boot/Image.gz ]; then
+            cp arch/arm64/boot/Image.gz AnyKernel/
+        elif [ -f arch/arm64/boot/Image ]; then
+            cp arch/arm64/boot/Image AnyKernel/
+        else
+            find arch/arm64/boot/ -maxdepth 1 -type f -name "Image*" -exec cp {} AnyKernel/ \;
+        fi
+        
+        cd AnyKernel
+        sed -i 's/kernel.string=.*/kernel.string=Proton Plus Overclocked Kernel/g' anykernel.sh
+        zip -r9 ../ProtonPlus_Overclocked_Exynos2100.zip *
+
+    - name: Upload Flashable Zip File
+      uses: actions/upload-artifact@v4
+      with:
+        name: ProtonPlus-Overclocked-Kernel
+        path: ProtonPlus_Overclocked_Exynos2100.zip
