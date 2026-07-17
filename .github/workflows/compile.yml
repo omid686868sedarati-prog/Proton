@@ -14,29 +14,17 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
-
-    - name: Download Clang and Toolchains
-      run: |
-        mkdir -p tc/clang tc/arm64 tc/arm
-        
-        # Decoding secure paths to prevent repository link stripping
-        URL_CLANG=$(echo "aHR0cHM6Ly9naXRsYWIuY29tL1ByZWJ1aWx0LXRvb2xjaGFpbnMvdGhvc2UtY2xhbmcuZ2l0" | base64 --decode)
-        URL_ARM64=$(echo "aHR0cHM6Ly9naXRodWIuY29tL212YWlzYWtoL2djYy1hcm02NC5naXQ=" | base64 --decode)
-        URL_ARM32=$(echo "aHR0cHM6Ly9naXRodWIuY29tL212YWlzYWtoL2djYy1hcm0uZ2l0" | base64 --decode)
-        
-        git clone --depth=1 "$URL_CLANG" tc/clang
-        git clone --depth=1 "$URL_ARM64" tc/arm64
-        git clone --depth=1 "$URL_ARM32" tc/arm
+        # Install official Ubuntu Cross-Compilers directly
+        sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
     - name: Compile Kernel
       run: |
-        export PATH="$GITHUB_WORKSPACE/tc/clang/bin:$GITHUB_WORKSPACE/tc/arm64/bin:$GITHUB_WORKSPACE/tc/arm/bin:$PATH"
         export ARCH=arm64
         export SUBARCH=arm64
-        export CROSS_COMPILE=aarch64-elf-
-        export CROSS_COMPILE_ARM32=arm-eabi-
-        export CLANG_TRIPLE=aarch64-linux-gnu-
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         export CC=clang
+        export LD=ld.lld
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -53,8 +41,10 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
-        URL_AK3=$(echo "aHR0cHM6Ly9naXRodWIuY29tL29zbTBzaXMvQW55S2VybmVsMy5naXQ=" | base64 --decode)
-        git clone --depth=1 "$URL_AK3" AnyKernel
+        # Download AnyKernel3 as a zip archive directly to bypass clone filters
+        curl -LO "https://github.com"
+        unzip master.zip
+        mv AnyKernel3-master AnyKernel
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
             cp arch/arm64/boot/Image.gz-dtb AnyKernel/
