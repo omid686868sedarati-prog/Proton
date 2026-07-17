@@ -14,8 +14,16 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
-        # Install official Ubuntu Cross-Compilers directly
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
+
+    - name: Setup KernelSU
+      run: |
+        # ایجاد پوشه و دانلود خودکار کدهای KernelSU برای حل خطای Kconfig
+        mkdir -p drivers/kernelsu
+        curl -LSs "https://github.com" -o kernelsu.zip
+        unzip -q kernelsu.zip
+        mv KernelSU-main/* drivers/kernelsu/
+        rm -rf kernelsu.zip KernelSU-main
 
     - name: Compile Kernel
       run: |
@@ -41,7 +49,6 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
-        # Download AnyKernel3 as a zip archive directly to bypass clone filters
         curl -LO "https://github.com"
         unzip master.zip
         mv AnyKernel3-master AnyKernel
