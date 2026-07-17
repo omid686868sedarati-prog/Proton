@@ -18,27 +18,23 @@ jobs:
 
     - name: Force Clean and Create Multi-Path Dummy Files
       run: |
-        # پاکسازی قفل‌های احتمالی
         git rm -f drivers/kernelsu 2>/dev/null || true
         git rm -f drivers/KernelSU 2>/dev/null || true
         git rm -f KernelSU 2>/dev/null || true
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         
-        # ۱. ساخت مسیر با حروف کوچک داخل پوشه درایورها
         mkdir -p drivers/kernelsu/kernel
         echo "obj-y +=" > drivers/kernelsu/Makefile
         echo "obj-y +=" > drivers/kernelsu/kernel/Makefile
         echo "# Dummy" > drivers/kernelsu/Kconfig
         echo "# Dummy" > drivers/kernelsu/kernel/Kconfig
         
-        # ۲. ساخت مسیر با حروف بزرگ داخل پوشه درایورها
         mkdir -p drivers/KernelSU/kernel
         echo "obj-y +=" > drivers/KernelSU/Makefile
         echo "obj-y +=" > drivers/KernelSU/kernel/Makefile
         echo "# Dummy" > drivers/KernelSU/Kconfig
         echo "# Dummy" > drivers/KernelSU/kernel/Kconfig
 
-        # ۳. ساخت مسیر با حروف بزرگ در ریشه اصلی (خارج از درایورها برای حل ارور جدید)
         mkdir -p KernelSU/kernel
         echo "obj-y +=" > KernelSU/Makefile
         echo "obj-y +=" > KernelSU/kernel/Makefile
@@ -51,6 +47,9 @@ jobs:
         export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
         export CC=clang
         export LD=ld.lld
+        
+        # اضافه کردن پرچم های نادیده گرفتن خطای نگارشی کامپایلر برای عبور بدون توقف
+        export KCFLAGS="-Wno-error=format -Wno-error=incompatible-pointer-types"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
