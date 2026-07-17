@@ -16,21 +16,32 @@ jobs:
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
-    - name: Force Clean and Create Dummy Files
+    - name: Force Clean and Create Multi-Path Dummy Files
       run: |
-        # پاکسازی و بازسازی همزمان تمام مسیرها برای حل ریشه‌ای ارورهای Kconfig
+        # پاکسازی قفل‌های احتمالی
         git rm -f drivers/kernelsu 2>/dev/null || true
-        rm -rf drivers/kernelsu
+        git rm -f drivers/KernelSU 2>/dev/null || true
+        git rm -f KernelSU 2>/dev/null || true
+        rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         
-        # ساخت فایل برای مسیر ریشه
-        mkdir -p drivers/kernelsu
-        echo "obj-y +=" > drivers/kernelsu/Makefile
-        echo "# Dummy file to bypass build error" > drivers/kernelsu/Kconfig
-        
-        # ساخت فایل برای مسیر زیرمجموعه
+        # ۱. ساخت مسیر با حروف کوچک داخل پوشه درایورها
         mkdir -p drivers/kernelsu/kernel
+        echo "obj-y +=" > drivers/kernelsu/Makefile
         echo "obj-y +=" > drivers/kernelsu/kernel/Makefile
-        echo "# Dummy file to bypass build error" > drivers/kernelsu/kernel/Kconfig
+        echo "# Dummy" > drivers/kernelsu/Kconfig
+        echo "# Dummy" > drivers/kernelsu/kernel/Kconfig
+        
+        # ۲. ساخت مسیر با حروف بزرگ داخل پوشه درایورها
+        mkdir -p drivers/KernelSU/kernel
+        echo "obj-y +=" > drivers/KernelSU/Makefile
+        echo "obj-y +=" > drivers/KernelSU/kernel/Makefile
+        echo "# Dummy" > drivers/KernelSU/Kconfig
+        echo "# Dummy" > drivers/KernelSU/kernel/Kconfig
+
+        # ۳. ساخت مسیر با حروف بزرگ در ریشه اصلی (خارج از درایورها برای حل ارور جدید)
+        mkdir -p KernelSU/kernel
+        echo "obj-y +=" > KernelSU/Makefile
+        echo "obj-y +=" > KernelSU/kernel/Makefile
 
     - name: Compile Kernel
       run: |
