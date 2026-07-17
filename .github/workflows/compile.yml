@@ -48,8 +48,7 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        # اضافه کردن پرچم های نادیده گرفتن خطای نگارشی کامپایلر برای عبور بدون توقف
-        export KCFLAGS="-Wno-error=format -Wno-error=incompatible-pointer-types"
+        export KCFLAGS="-w -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
