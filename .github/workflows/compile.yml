@@ -16,17 +16,21 @@ jobs:
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
-    - name: Force Clean and Create Missing KernelSU Files
+    - name: Force Clean and Create Dummy Files
       run: |
-        # حذف اجباری پوشه یا ساب‌ماژول قفل‌شده قبلی از دیتابیس گیت و دیسک
+        # پاکسازی و بازسازی همزمان تمام مسیرها برای حل ریشه‌ای ارورهای Kconfig
         git rm -f drivers/kernelsu 2>/dev/null || true
         rm -rf drivers/kernelsu
         
-        # ساخت مجدد مسیر به صورت کاملاً تمیز
+        # ساخت فایل برای مسیر ریشه
+        mkdir -p drivers/kernelsu
+        echo "obj-y +=" > drivers/kernelsu/Makefile
+        echo "# Dummy file to bypass build error" > drivers/kernelsu/Kconfig
+        
+        # ساخت فایل برای مسیر زیرمجموعه
         mkdir -p drivers/kernelsu/kernel
-        touch drivers/kernelsu/kernel/Kconfig
         echo "obj-y +=" > drivers/kernelsu/kernel/Makefile
-        echo "# Empty dummy file to bypass build error" > drivers/kernelsu/kernel/Kconfig
+        echo "# Dummy file to bypass build error" > drivers/kernelsu/kernel/Kconfig
 
     - name: Compile Kernel
       run: |
