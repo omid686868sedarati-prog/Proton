@@ -1,0 +1,70 @@
+name: Proton Plus Kernel Compiler
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Kernel Source
+      uses: actions/checkout@v4
+
+    - name: Set up Build Environment
+      run: |
+        sudo apt update
+        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip
+        
+    - name: Download Clang and Toolchains
+      run: |
+        mkdir -p ${{ github.workspace }}/tc
+        cd ${{ github.workspace }}/tc
+        git clone --depth=1 "https://github.com" arm64
+        git clone --depth=1 "https://github.com" arm
+        git clone --depth=1 "https://gitlab.com" clang
+
+    - name: Compile Kernel
+      run: |
+        export PATH="${{ github.workspace }}/tc/clang/bin:${{ github.workspace }}/tc/arm64/bin:${{ github.workspace }}/tc/arm/bin:$PATH"
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-elf-
+        export CROSS_COMPILE_ARM32=arm-eabi-
+        export CLANG_TRIPLE=aarch64-linux-gnu-
+        export CC=clang
+        
+        if [ -f arch/arm64/configs/proton_defconfig ]; then
+            make proton_defconfig
+        elif [ -f arch/arm64/configs/exynos2100_defconfig ]; then
+            make exynos2100_defconfig
+        elif [ -f arch/arm64/configs/vendor_defconfig ]; then
+            make vendor_defconfig
+        else
+            CONF=$(ls arch/arm64/configs/ | grep _defconfig | head -n 1)
+            make $CONF
+        fi
+        
+        make -j$(nproc)
+
+    - name: Package with AnyKernel3
+      run: |
+        cd ${{ github.workspace }}
+        git clone --depth=1 "https://github.com" AnyKernel
+        
+        if [ -f arch/arm64/boot/Image.gz-dtb ]; then
+            cp arch/arm64/boot/Image.gz-dtb AnyKernel/
+        elif [ -f arch/arm64/boot/Image.gz ]; then
+            cp arch/arm64/boot/Image.gz AnyKernel/
+        else
+            cp arch/arm64/boot/Image AnyKernel/
+        fi
+        
+        cd AnyKernel
+        sed -i 's/kernel.string=.*/kernel.string=Proton Plus Overclocked Kernel/g' anykernel.sh
+        zip -r9 ../ProtonPlus_Overclocked_Exynos2100.zip *
+
+    - name: Upload Flashable Zip File
+      uses: actions/upload-artifact@v4
+      with:
+        name: ProtonPlus-Overclocked-Kernel
+        path: ProtonPlus_Overclocked_Exynos2100.zip
