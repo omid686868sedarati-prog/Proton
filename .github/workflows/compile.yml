@@ -13,19 +13,23 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt update
-        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip
-        
+        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
+
     - name: Download Clang and Toolchains
       run: |
-        mkdir -p ${{ github.workspace }}/tc
-        cd ${{ github.workspace }}/tc
-        git clone --depth=1 "https://github.com" arm64
-        git clone --depth=1 "https://github.com" arm
-        git clone --depth=1 "https://gitlab.com" clang
+        mkdir -p tc/clang tc/arm64 tc/arm
+        
+        # Download directly via mirror link to prevent Git clone stripping issue
+        wget -qO- "https://githubusercontent.com" > /dev/null && \
+        git clone --depth=1 https://gitlab.com tc/clang || \
+        (curl -LO https://googlesource.com && tar -xf clang-r522817.tar.gz -C tc/clang)
+        
+        git clone --depth=1 https://github.com tc/arm64
+        git clone --depth=1 https://github.com tc/arm
 
     - name: Compile Kernel
       run: |
-        export PATH="${{ github.workspace }}/tc/clang/bin:${{ github.workspace }}/tc/arm64/bin:${{ github.workspace }}/tc/arm/bin:$PATH"
+        export PATH="$GITHUB_WORKSPACE/tc/clang/bin:$GITHUB_WORKSPACE/tc/arm64/bin:$GITHUB_WORKSPACE/tc/arm/bin:$PATH"
         export ARCH=arm64
         export SUBARCH=arm64
         export CROSS_COMPILE=aarch64-elf-
@@ -48,8 +52,7 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
-        cd ${{ github.workspace }}
-        git clone --depth=1 "https://github.com" AnyKernel
+        git clone --depth=1 https://github.com AnyKernel
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
             cp arch/arm64/boot/Image.gz-dtb AnyKernel/
