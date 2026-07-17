@@ -18,15 +18,11 @@ jobs:
 
     - name: Setup KernelSU
       run: |
-        # پاکسازی پوشه ناقص قبلی برای حل خطای File exists
+        # پاکسازی هرگونه پوشه خراب قبلی برای حل اختلال Kconfig
         rm -rf drivers/kernelsu
-        mkdir -p drivers/kernelsu
         
-        # دانلود کدهای تازه KernelSU
-        curl -LSs "https://github.com" -o kernelsu.zip
-        unzip -q kernelsu.zip
-        mv KernelSU-main/* drivers/kernelsu/
-        rm -rf kernelsu.zip KernelSU-main
+        # اجرای اسکریپت رسمی و استاندارد راه اندازی KernelSU
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s main
 
     - name: Compile Kernel
       run: |
