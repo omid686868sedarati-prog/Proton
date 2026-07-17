@@ -19,13 +19,14 @@ jobs:
       run: |
         mkdir -p tc/clang tc/arm64 tc/arm
         
-        # Download directly via mirror link to prevent Git clone stripping issue
-        wget -qO- "https://githubusercontent.com" > /dev/null && \
-        git clone --depth=1 https://gitlab.com tc/clang || \
-        (curl -LO https://googlesource.com && tar -xf clang-r522817.tar.gz -C tc/clang)
+        # Decoding secure paths to prevent repository link stripping
+        URL_CLANG=$(echo "aHR0cHM6Ly9naXRsYWIuY29tL1ByZWJ1aWx0LXRvb2xjaGFpbnMvdGhvc2UtY2xhbmcuZ2l0" | base64 --decode)
+        URL_ARM64=$(echo "aHR0cHM6Ly9naXRodWIuY29tL212YWlzYWtoL2djYy1hcm02NC5naXQ=" | base64 --decode)
+        URL_ARM32=$(echo "aHR0cHM6Ly9naXRodWIuY29tL212YWlzYWtoL2djYy1hcm0uZ2l0" | base64 --decode)
         
-        git clone --depth=1 https://github.com tc/arm64
-        git clone --depth=1 https://github.com tc/arm
+        git clone --depth=1 "$URL_CLANG" tc/clang
+        git clone --depth=1 "$URL_ARM64" tc/arm64
+        git clone --depth=1 "$URL_ARM32" tc/arm
 
     - name: Compile Kernel
       run: |
@@ -52,7 +53,8 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
-        git clone --depth=1 https://github.com AnyKernel
+        URL_AK3=$(echo "aHR0cHM6Ly9naXRodWIuY29tL29zbTBzaXMvQW55S2VybmVsMy5naXQ=" | base64 --decode)
+        git clone --depth=1 "$URL_AK3" AnyKernel
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
             cp arch/arm64/boot/Image.gz-dtb AnyKernel/
