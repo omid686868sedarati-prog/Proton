@@ -22,24 +22,23 @@ jobs:
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
-        # 2. Download with explicit output filename to prevent Curl Error 23
-        curl -L -o next.zip "https://github.com"
-        unzip -q next.zip
+        # 2. Clone using un-proxied straight URL syntax to avoid terminal redirection bugs
+        git clone --depth=1 --branch=next https://github.com ./ksu_src
         
         # 3. Physically replicate to all 3 potential paths to satisfy any hardcoded Makefile
         mkdir -p drivers/kernelsu
-        cp -r KernelSU-Next-next/* drivers/kernelsu/
+        cp -r ksu_src/* drivers/kernelsu/
 
         mkdir -p drivers/KernelSU/kernel
-        cp -r KernelSU-Next-next/kernel/* drivers/KernelSU/kernel/
-        cp -r KernelSU-Next-next/* drivers/KernelSU/ 2>/dev/null || true
+        cp -r ksu_src/kernel/* drivers/KernelSU/kernel/
+        cp -r ksu_src/* drivers/KernelSU/ 2>/dev/null || true
 
         mkdir -p KernelSU/kernel
-        cp -r KernelSU-Next-next/kernel/* KernelSU/kernel/
-        cp -r KernelSU-Next-next/* KernelSU/ 2>/dev/null || true
+        cp -r ksu_src/kernel/* KernelSU/kernel/
+        cp -r ksu_src/* KernelSU/ 2>/dev/null || true
 
         # Clean workspace
-        rm -rf KernelSU-Next-next next.zip
+        rm -rf ksu_src
 
         # 4. Patch drivers/Kconfig to prevent "can't open file" compilation halts
         if [ -f drivers/Kconfig ]; then
@@ -101,9 +100,7 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
-        curl -L -o master.zip "https://github.com"
-        unzip -q master.zip
-        mv AnyKernel3-master AnyKernel
+        git clone --depth=1 https://github.com AnyKernel
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
             cp arch/arm64/boot/Image.gz-dtb AnyKernel/
