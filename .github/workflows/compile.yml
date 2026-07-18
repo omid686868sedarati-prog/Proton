@@ -28,25 +28,23 @@ jobs:
         mkdir -p KernelSU/kernel
 
         # 3. Create the Makefile structures recursively inside the sub-kernel folders
-        echo 'obj-y += ksu.o' > drivers/kernelsu/Makefile
-        echo 'obj-y += ksu.o' > drivers/kernelsu/kernel/Makefile
-        echo 'obj-y += ksu.o' > drivers/KernelSU/Makefile
-        echo 'obj-y += ksu.o' > drivers/KernelSU/kernel/Makefile
-        echo 'obj-y += ksu.o' > KernelSU/Makefile
-        echo 'obj-y += ksu.o' > KernelSU/kernel/Makefile
+        echo "obj-y += ksu.o" > drivers/kernelsu/Makefile
+        echo "obj-y += ksu.o" > drivers/kernelsu/kernel/Makefile
+        echo "obj-y += ksu.o" > drivers/KernelSU/Makefile
+        echo "obj-y += ksu.o" > drivers/KernelSU/kernel/Makefile
+        echo "obj-y += ksu.o" > KernelSU/Makefile
+        echo "obj-y += ksu.o" > KernelSU/kernel/Makefile
 
-        echo 'config KSU' > drivers/kernelsu/Kconfig
-        echo '    bool "Enable KernelSU Next"' >> drivers/kernelsu/Kconfig
-        echo '    default y' >> drivers/kernelsu/Kconfig
+        echo "config KSU" > drivers/kernelsu/Kconfig
+        echo "    bool \"Enable KernelSU Next\"" >> drivers/kernelsu/Kconfig
+        echo "    default y" >> drivers/kernelsu/Kconfig
 
-        # 4. Write pure raw stub functions directly inside the exact files compiler requests
-        cat << 'EOF' > drivers/kernelsu/kernel/ksu.c
-#include <linux/init.h>
-#include <linux/module.h>
-#include <linux/fs.h>
-int ksu_handle_execve(void *bprm) { return 0; }
-int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }
-EOF
+        # 4. Write pure raw stub functions using standard clean single line echo commands
+        echo "#include <linux/init.h>" > drivers/kernelsu/kernel/ksu.c
+        echo "#include <linux/module.h>" >> drivers/kernelsu/kernel/ksu.c
+        echo "#include <linux/fs.h>" >> drivers/kernelsu/kernel/ksu.c
+        echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/kernelsu/kernel/ksu.c
+        echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/kernelsu/kernel/ksu.c
 
         # Copy the working ksu.c source to all required root and sub-kernel tracking arrays
         cp drivers/kernelsu/kernel/ksu.c drivers/kernelsu/ksu.c
