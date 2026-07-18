@@ -16,40 +16,48 @@ jobs:
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
-    - name: Clean Conflicting Paths and Force Strip Kconfig Links
+    - name: Setup and Replicate KernelSU Next Sources
       run: |
-        # Force remove legacy directories
-        git rm -f drivers/kernelsu 2>/dev/null || true
-        git rm -f drivers/KernelSU 2>/dev/null || true
-        git rm -f KernelSU 2>/dev/null || true
+        # 1. Clean up any existing legacy paths or broken symlinks completely
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
+        git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
+
+        # 2. Download and extract KernelSU Next into an isolated workspace
+        curl -LO "https://github.com"
+        unzip -q next.zip
         
-        # Aggressive cleaning for any reference to KernelSU in drivers/Kconfig
+        # 3. Physically replicate to all 3 potential paths to satisfy any hardcoded Makefile
+        mkdir -p drivers/kernelsu
+        cp -r KernelSU-Next-next/* drivers/kernelsu/
+
+        mkdir -p drivers/KernelSU/kernel
+        cp -r KernelSU-Next-next/kernel/* drivers/KernelSU/kernel/
+        cp -r KernelSU-Next-next/* drivers/KernelSU/ 2>/dev/null || true
+
+        mkdir -p KernelSU/kernel
+        cp -r KernelSU-Next-next/kernel/* KernelSU/kernel/
+        cp -r KernelSU-Next-next/* KernelSU/ 2>/dev/null || true
+
+        # Clean workspace
+        rm -rf KernelSU-Next-next next.zip
+
+        # 4. Patch drivers/Kconfig to prevent "can't open file" compilation halts
         if [ -f drivers/Kconfig ]; then
-            sed -i '/[kK][eE][rR][nN][eE][lL][sS][uU]/d' drivers/Kconfig
+            # Fix lowercase references
+            sed -i 's|drivers/kernelsu/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
+            # Fix uppercase references
+            sed -i 's|drivers/KernelSU/kernel/Kconfig|drivers/KernelSU/Kconfig|g' drivers/Kconfig
+            sed -i 's|../KernelSU/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
         fi
 
-    - name: Integrate Official KernelSU Next via Native Clone
-      run: |
-        # Clone KernelSU Next source directly from git repository instead of downloading single script
-        git clone https://github.com -b next drivers/kernelsu
-        
-        # Replicate the exact hardcoded paths requested by Samsung/Proton Makefiles
-        mkdir -p KernelSU/kernel
-        cp -r drivers/kernelsu/kernel/* KernelSU/kernel/
-        cp -r drivers/kernelsu/* KernelSU/ 2>/dev/null || true
-        
-        mkdir -p drivers/KernelSU/kernel
-        cp -r drivers/kernelsu/kernel/* drivers/KernelSU/kernel/
-
-        # Ensure kernelsu is properly defined inside the core drivers/Makefile
-        if ! grep -q "kernelsu" drivers/Makefile; then
+        # 5. Double check and link within drivers/Makefile
+        if ! grep -q "obj-y += kernelsu/" drivers/Makefile; then
             echo "obj-y += kernelsu/" >> drivers/Makefile
         fi
 
     - name: Bypass Samsung Camera Driver Size Checks
       run: |
-        # Fix camera driver fortify errors
+        # Bypass fortify checks in the faulty driver by redirecting to raw copy functions
         if [ -f drivers/media/platform/exynos/camera/is-video.c ]; then
             sed -i 's/copy_from_user/raw_copy_from_user/g' drivers/media/platform/exynos/camera/is-video.c
             sed -i 's/copy_to_user/raw_copy_to_user/g' drivers/media/platform/exynos/camera/is-video.c
@@ -71,7 +79,7 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        # Inject standard global bypass flags
+        # Inject standard global bypass flags to bypass warnings
         export KCFLAGS="-w -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
@@ -85,7 +93,7 @@ jobs:
             make $CONF
         fi
         
-        # Inject KernelSU configuration and turn off strict fortify source
+        # Inject KernelSU configuration parameters and force turn off strict fortify source
         sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
         echo "CONFIG_FORTIFY_SOURCE=n" >> .config
         echo "CONFIG_KSU=y" >> .config
@@ -96,7 +104,7 @@ jobs:
     - name: Package with AnyKernel3
       run: |
         curl -LO "https://github.com"
-        unzip master.zip
+        unzip -q master.zip
         mv AnyKernel3-master AnyKernel
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
