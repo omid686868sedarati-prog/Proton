@@ -33,7 +33,12 @@ jobs:
       run: |
         curl -LSs "https://githubusercontent.com" | bash -s next
         
-        # Link KernelSU directory into the drivers Makefile safely
+        # Create robust symlinks to satisfy all hardcoded Samsung/Proton Makefile references
+        ln -sf kernelsu drivers/KernelSU
+        mkdir -p KernelSU
+        ln -sf ../drivers/kernelsu/kernel KernelSU/kernel
+        
+        # Link KernelSU directory into the drivers限制 Makefile safely
         if ! grep -q "kernelsu" drivers/Makefile; then
             echo "obj-y += kernelsu/" >> drivers/Makefile
         fi
