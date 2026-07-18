@@ -89,8 +89,8 @@ jobs:
         export CC=clang-18
         export LD=ld.lld-18
         
-        # Turbo-flags for parallel multi-threaded architecture
-        export KCFLAGS="-w -O3 -pipe -ffast-math -flto=thin -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
+        # Standard native LTO compilation flags that fit both GCC and Clang structures perfectly
+        export KCFLAGS="-w -O3 -pipe -ffast-math -flto -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -103,7 +103,7 @@ jobs:
             make $CONF
         fi
         
-        # Dynamic configuration patching to strip bulky debugging data
+        # Dynamic configuration patching to strip bulky debugging data and maximize execution velocity
         sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
         sed -i 's/CONFIG_DEBUG_INFO=y/CONFIG_DEBUG_INFO=n/g' .config 2>/dev/null || true
         echo "CONFIG_FORTIFY_SOURCE=n" >> .config
