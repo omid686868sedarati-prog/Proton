@@ -18,12 +18,12 @@ jobs:
 
     - name: Setup and Replicate KernelSU Next Sources
       run: |
-        # 1. Clean up any existing legacy paths or broken symlinks completely
+        # 1. Clean up any existing legacy paths completely
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
-        # 2. Download and extract KernelSU Next into an isolated workspace
-        curl -LO "https://github.com"
+        # 2. Download with explicit output filename to prevent Curl Error 23
+        curl -L -o next.zip "https://github.com"
         unzip -q next.zip
         
         # 3. Physically replicate to all 3 potential paths to satisfy any hardcoded Makefile
@@ -43,9 +43,7 @@ jobs:
 
         # 4. Patch drivers/Kconfig to prevent "can't open file" compilation halts
         if [ -f drivers/Kconfig ]; then
-            # Fix lowercase references
             sed -i 's|drivers/kernelsu/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
-            # Fix uppercase references
             sed -i 's|drivers/KernelSU/kernel/Kconfig|drivers/KernelSU/Kconfig|g' drivers/Kconfig
             sed -i 's|../KernelSU/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
         fi
@@ -103,7 +101,7 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
-        curl -LO "https://github.com"
+        curl -L -o master.zip "https://github.com"
         unzip -q master.zip
         mv AnyKernel3-master AnyKernel
         
