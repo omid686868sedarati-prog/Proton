@@ -48,7 +48,8 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        export KCFLAGS="-w -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
+        # Disable strict fortify and security checks for legacy Samsung drivers
+        export KCFLAGS="-w -D__NO_FORTIFY -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -60,6 +61,9 @@ jobs:
             CONF=$(ls arch/arm64/configs/ | grep _defconfig | head -n 1)
             make $CONF
         fi
+        
+        # Force modify fortify config in case it is hardcoded in defconfig
+        sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
         
         make -j$(nproc) || make
 
