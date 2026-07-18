@@ -1,4 +1,4 @@
-name: Proton Plus Kernel Compiler with KernelSU
+name: Proton Plus Fast Kernel Compiler
 
 on:
   workflow_dispatch:
@@ -10,11 +10,11 @@ jobs:
     - name: Checkout Kernel Source
       uses: actions/checkout@v4
 
-    - name: Set up Build Environment
+    - name: Set up Ultra-Fast Build Environment
       run: |
-        sudo apt update
-        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget rsync
-        sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
+        sudo apt update -qq
+        sudo apt install -y -qq bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget rsync clang lld
+        sudo apt install -y -qq gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
     - name: Native Inject KernelSU Next Sources
       run: |
@@ -75,10 +75,11 @@ jobs:
     - name: Fix Broken Optics Frame Warning Flags
       run: |
         if [ -f drivers/optics/Makefile ]; then
-            sed -i 's/-Wno-frame-larger-than=/-Wno-frame-larger-than=2048/g' drivers/optics/Makefile
+            sed -i 's/-Wno-frame-larger-than=//g' drivers/optics/Makefile
+            sed -i 's/-Wno-frame-larger-than=2048//g' drivers/optics/Makefile
         fi
 
-    - name: Compile Kernel
+    - name: Compile Kernel At Maximum Speed
       run: |
         export ARCH=arm64
         export SUBARCH=arm64
@@ -87,7 +88,8 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        export KCFLAGS="-w -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
+        # Super-flags for accelerating Clang pipeline compilation
+        export KCFLAGS="-w -O3 -pipe -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -100,12 +102,16 @@ jobs:
             make $CONF
         fi
         
+        # Aggressively disable heavy debugging symbols to supercharge compilation speed
         sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
+        sed -i 's/CONFIG_DEBUG_INFO=y/CONFIG_DEBUG_INFO=n/g' .config 2>/dev/null || true
         echo "CONFIG_FORTIFY_SOURCE=n" >> .config
+        echo "CONFIG_DEBUG_INFO=n" >> .config
         echo "CONFIG_KSU=y" >> .config
         echo "CONFIG_KSU_NEXT=y" >> .config
         
-        make -j$(nproc) || make
+        # Parallel Execution Override
+        make -j$(nproc)
 
     - name: Package with AnyKernel3
       run: |
