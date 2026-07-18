@@ -16,12 +16,18 @@ jobs:
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
-    - name: Clean Conflicting Paths
+    - name: Clean Conflicting Paths and Force Strip Kconfig Links
       run: |
+        # Force remove legacy directories
         git rm -f drivers/kernelsu 2>/dev/null || true
         git rm -f drivers/KernelSU 2>/dev/null || true
         git rm -f KernelSU 2>/dev/null || true
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
+        
+        # Aggressive cleaning for any reference to KernelSU in drivers/Kconfig
+        if [ -f drivers/Kconfig ]; then
+            sed -i '/[kK][eE][rR][nN][eE][lL][sS][uU]/d' drivers/Kconfig
+        fi
 
     - name: Integrate Official KernelSU Next
       run: |
