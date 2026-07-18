@@ -18,36 +18,40 @@ jobs:
 
     - name: Setup and Replicate KernelSU Next Sources
       run: |
-        # 1. Aggressively purge any existing legacy links or broken targets
+        # 1. Break GitHub's internal proxy and extraheader lock to allow external cloning/downloads
+        git config --global --unset-all http.https://github.com || true
+
+        # 2. Aggressively purge any existing legacy links or folders
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
-        # 2. Clone from the newly migrated official repository path
-        git clone --depth=1 --branch=next https://github.com ./ksu_src
+        # 3. Use wget (completely independent downloader) to fetch source to avoid Curl/Git proxy bugs
+        wget -q --show-progress https://github.com -O ksu_next.zip
+        unzip -q ksu_next.zip
         
-        # 3. Use rsync to robustly replicate workspace directories to satisfy all hardcoded Makefiles
+        # 4. Replicate workspace directories using rsync to satisfy all hardcoded Makefiles
         mkdir -p drivers/kernelsu
-        rsync -a --exclude='.git' ksu_src/ drivers/kernelsu/
+        rsync -a --exclude='.git' KernelSU-Next-next/ drivers/kernelsu/
 
         mkdir -p drivers/KernelSU/kernel
-        rsync -a --exclude='.git' ksu_src/kernel/ drivers/KernelSU/kernel/
-        rsync -a --exclude='.git' ksu_src/ drivers/KernelSU/
+        rsync -a --exclude='.git' KernelSU-Next-next/kernel/ drivers/KernelSU/kernel/
+        rsync -a --exclude='.git' KernelSU-Next-next/ drivers/KernelSU/
 
         mkdir -p KernelSU/kernel
-        rsync -a --exclude='.git' ksu_src/kernel/ KernelSU/kernel/
-        rsync -a --exclude='.git' ksu_src/ KernelSU/
+        rsync -a --exclude='.git' KernelSU-Next-next/kernel/ KernelSU/kernel/
+        rsync -a --exclude='.git' KernelSU-Next-next/ KernelSU/
 
-        # Clean workspace
-        rm -rf ksu_src
+        # Clean up temporary downloads
+        rm -rf KernelSU-Next-next ksu_next.zip
 
-        # 4. Patch drivers/Kconfig to prevent "can't open file" compilation halts
+        # 5. Patch drivers/Kconfig to prevent "can't open file" compilation halts
         if [ -f drivers/Kconfig ]; then
             sed -i 's|drivers/kernelsu/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
-            sed -i 's|drivers/KernelSU/kernel/Kconfig|drivers/KernelSU/Kconfig|g' drivers/Kconfig
+            sed -i 's|drivers/KernelSU/kernel/Kconfig|drivers/Kconfig|g' drivers/Kconfig
             sed -i 's|../KernelSU/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
         fi
 
-        # 5. Link within core drivers/Makefile safely
+        # 6. Secure link entry inside core drivers/Makefile
         if ! grep -q "obj-y += kernelsu/" drivers/Makefile; then
             echo "obj-y += kernelsu/" >> drivers/Makefile
         fi
@@ -76,7 +80,7 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        # Inject standard global bypass flags to suppress rigid toolchain errors
+        # Inject global bypass flags to completely disable rigid toolchain checks
         export KCFLAGS="-w -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
@@ -100,6 +104,8 @@ jobs:
 
     - name: Package with AnyKernel3
       run: |
+        # Clean extraheader before final independent git clone
+        git config --global --unset-all http.https://github.com || true
         git clone --depth=1 https://github.com AnyKernel
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
