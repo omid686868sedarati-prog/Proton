@@ -73,11 +73,16 @@ jobs:
             sed -i 's/copy_to_user/raw_copy_to_user/g' drivers/media/platform/exynos/camera/is-video.c
         fi
 
-    - name: Fix Broken Optics Frame Warning Flags
+    - name: Fix Broken Optics Makefile & Allow Floating-Points
       run: |
         if [ -f drivers/optics/Makefile ]; then
+            # Clean frame parameters
             sed -i 's/-Wno-frame-larger-than=//g' drivers/optics/Makefile
             sed -i 's/-Wno-frame-larger-than=2048//g' drivers/optics/Makefile
+            
+            # Inject float support explicitly for tsl2510.c inside optics compiler flag
+            echo "CFLAGS_tsl2510.o += -mforce-floating-point -ffast-math" >> drivers/optics/Makefile
+            echo "CFLAGS_REMOVE_tsl2510.o += -mgeneral-regs-only" >> drivers/optics/Makefile
         fi
 
     - name: Compile Kernel At Hyperspeed
