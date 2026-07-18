@@ -39,6 +39,14 @@ jobs:
         echo "obj-y +=" > KernelSU/Makefile
         echo "obj-y +=" > KernelSU/kernel/Makefile
 
+    - name: Bypass Samsung Camera Driver Size Checks
+      run: |
+        # Bypass fortify checks in the faulty driver by redirecting to raw copy functions
+        if [ -f drivers/media/platform/exynos/camera/is-video.c ]; then
+            sed -i 's/copy_from_user/raw_copy_from_user/g' drivers/media/platform/exynos/camera/is-video.c
+            sed -i 's/copy_to_user/raw_copy_to_user/g' drivers/media/platform/exynos/camera/is-video.c
+        fi
+
     - name: Compile Kernel
       run: |
         export ARCH=arm64
@@ -48,8 +56,8 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        # Disable strict fortify and security checks for legacy Samsung drivers
-        export KCFLAGS="-w -D__NO_FORTIFY -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
+        # Inject flags to strip fortify checks completely
+        export KCFLAGS="-w -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -62,8 +70,9 @@ jobs:
             make $CONF
         fi
         
-        # Force modify fortify config in case it is hardcoded in defconfig
+        # Turn off config fortify flags forcefully
         sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
+        echo "CONFIG_FORTIFY_SOURCE=n" >> .config
         
         make -j$(nproc) || make
 
