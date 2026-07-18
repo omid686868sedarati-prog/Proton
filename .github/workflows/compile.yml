@@ -13,29 +13,29 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt update
-        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
+        sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget rsync
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
     - name: Setup and Replicate KernelSU Next Sources
       run: |
-        # 1. Clean up any existing legacy paths completely
+        # 1. Aggressively purge any existing legacy links or broken targets
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
-        # 2. Clone using un-proxied straight URL syntax to avoid terminal redirection bugs
+        # 2. Clone from the newly migrated official repository path
         git clone --depth=1 --branch=next https://github.com ./ksu_src
         
-        # 3. Physically replicate to all 3 potential paths to satisfy any hardcoded Makefile
+        # 3. Use rsync to robustly replicate workspace directories to satisfy all hardcoded Makefiles
         mkdir -p drivers/kernelsu
-        cp -r ksu_src/* drivers/kernelsu/
+        rsync -a --exclude='.git' ksu_src/ drivers/kernelsu/
 
         mkdir -p drivers/KernelSU/kernel
-        cp -r ksu_src/kernel/* drivers/KernelSU/kernel/
-        cp -r ksu_src/* drivers/KernelSU/ 2>/dev/null || true
+        rsync -a --exclude='.git' ksu_src/kernel/ drivers/KernelSU/kernel/
+        rsync -a --exclude='.git' ksu_src/ drivers/KernelSU/
 
         mkdir -p KernelSU/kernel
-        cp -r ksu_src/kernel/* KernelSU/kernel/
-        cp -r ksu_src/* KernelSU/ 2>/dev/null || true
+        rsync -a --exclude='.git' ksu_src/kernel/ KernelSU/kernel/
+        rsync -a --exclude='.git' ksu_src/ KernelSU/
 
         # Clean workspace
         rm -rf ksu_src
@@ -47,7 +47,7 @@ jobs:
             sed -i 's|../KernelSU/kernel/Kconfig|drivers/kernelsu/Kconfig|g' drivers/Kconfig
         fi
 
-        # 5. Double check and link within drivers/Makefile
+        # 5. Link within core drivers/Makefile safely
         if ! grep -q "obj-y += kernelsu/" drivers/Makefile; then
             echo "obj-y += kernelsu/" >> drivers/Makefile
         fi
@@ -76,7 +76,7 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        # Inject standard global bypass flags to bypass warnings
+        # Inject standard global bypass flags to suppress rigid toolchain errors
         export KCFLAGS="-w -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
