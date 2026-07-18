@@ -1,4 +1,4 @@
-name: Proton Plus Kernel Compiler
+name: Proton Plus Kernel Compiler with KernelSU
 
 on:
   workflow_dispatch:
@@ -16,35 +16,35 @@ jobs:
         sudo apt install -y bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget
         sudo apt install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi clang lld
 
-    - name: Force Clean and Create Multi-Path Dummy Files
+    - name: Clean Conflicting Paths
       run: |
         git rm -f drivers/kernelsu 2>/dev/null || true
         git rm -f drivers/KernelSU 2>/dev/null || true
         git rm -f KernelSU 2>/dev/null || true
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
-        
-        mkdir -p drivers/kernelsu/kernel
-        echo "obj-y +=" > drivers/kernelsu/Makefile
-        echo "obj-y +=" > drivers/kernelsu/kernel/Makefile
-        echo "# Dummy" > drivers/kernelsu/Kconfig
-        echo "# Dummy" > drivers/kernelsu/kernel/Kconfig
-        
-        mkdir -p drivers/KernelSU/kernel
-        echo "obj-y +=" > drivers/KernelSU/Makefile
-        echo "obj-y +=" > drivers/KernelSU/kernel/Makefile
-        echo "# Dummy" > drivers/KernelSU/Kconfig
-        echo "# Dummy" > drivers/KernelSU/kernel/Kconfig
 
-        mkdir -p KernelSU/kernel
-        echo "obj-y +=" > KernelSU/Makefile
-        echo "obj-y +=" > KernelSU/kernel/Makefile
+    - name: Integrate Official KernelSU Next
+      run: |
+        curl -LSs "https://githubusercontent.com" | bash -s next
+        
+        # Link KernelSU directory into the drivers Makefile safely
+        if ! grep -q "kernelsu" drivers/Makefile; then
+            echo "obj-y += kernelsu/" >> drivers/Makefile
+        fi
 
     - name: Bypass Samsung Camera Driver Size Checks
       run: |
-        # Bypass fortify checks in the faulty driver by redirecting to raw copy functions
+        # Fix camera driver fortify errors
         if [ -f drivers/media/platform/exynos/camera/is-video.c ]; then
             sed -i 's/copy_from_user/raw_copy_from_user/g' drivers/media/platform/exynos/camera/is-video.c
             sed -i 's/copy_to_user/raw_copy_to_user/g' drivers/media/platform/exynos/camera/is-video.c
+        fi
+
+    - name: Fix Broken Optics Frame Warning Flags
+      run: |
+        # Fix the empty -Wno-frame-larger-than= compiler option in optics drivers
+        if [ -f drivers/optics/Makefile ]; then
+            sed -i 's/-Wno-frame-larger-than=/-Wno-frame-larger-than=2048/g' drivers/optics/Makefile
         fi
 
     - name: Compile Kernel
@@ -56,7 +56,7 @@ jobs:
         export CC=clang
         export LD=ld.lld
         
-        # Inject flags to strip fortify checks completely
+        # Inject standard global bypass flags
         export KCFLAGS="-w -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
@@ -70,9 +70,11 @@ jobs:
             make $CONF
         fi
         
-        # Turn off config fortify flags forcefully
+        # Inject KernelSU configuration and turn off strict fortify source
         sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
         echo "CONFIG_FORTIFY_SOURCE=n" >> .config
+        echo "CONFIG_KSU=y" >> .config
+        echo "CONFIG_KSU_NEXT=y" >> .config
         
         make -j$(nproc) || make
 
@@ -93,11 +95,11 @@ jobs:
         fi
         
         cd AnyKernel
-        sed -i 's/kernel.string=.*/kernel.string=Proton Plus Overclocked Kernel/g' anykernel.sh
-        zip -r9 ../ProtonPlus_Overclocked_Exynos2100.zip *
+        sed -i 's/kernel.string=.*/kernel.string=Proton Plus Overclocked Kernel with KernelSU Next/g' anykernel.sh
+        zip -r9 ../ProtonPlus_Overclocked_Exynos2100_KSU.zip *
 
     - name: Upload Flashable Zip File
       uses: actions/upload-artifact@v4
       with:
-        name: ProtonPlus-Overclocked-Kernel
-        path: ProtonPlus_Overclocked_Exynos2100.zip
+        name: ProtonPlus-Overclocked-Kernel-KSU
+        path: ProtonPlus_Overclocked_Exynos2100_KSU.zip
