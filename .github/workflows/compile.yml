@@ -10,22 +10,12 @@ jobs:
     - name: Checkout Kernel Source
       uses: actions/checkout@v4
 
-    - name: Set up Ultra-Fast Build Environment
+    - name: Set up Native High-Speed Clang 18 Toolchain
       run: |
         sudo apt update -qq
-        sudo apt install -y -qq bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget rsync
-        
-        # Download Google's Hyper-Optimized Prebuilt Clang toolchain instead of slow apt-clang
-        mkdir -p $GITHUB_WORKSPACE/clang
-        curl -L "https://googlesource.com" -o clang.tar.gz
-        tar -xzf clang.tar.gz -C $GITHUB_WORKSPACE/clang
-        rm -f clang.tar.gz
-
-        # Download Official Aarch64 GCC for supplementary linking
-        mkdir -p $GITHUB_WORKSPACE/gcc64
-        curl -L "https://arm.com" -o gcc64.tar.xz
-        tar -xf gcc64.tar.xz --strip-components=1 -C $GITHUB_WORKSPACE/gcc64
-        rm -f gcc64.tar.xz
+        # Install latest high-speed Clang 18 directly from Ubuntu repository
+        sudo apt install -y -qq bc build-essential binfmt-support libssl-dev ccache curl git bison flex make u-boot-tools libncurses5-dev zip wget rsync clang-18 lld-18 llvm-18
+        sudo apt install -y -qq gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
     - name: Native Inject KernelSU Next Sources
       run: |
@@ -92,15 +82,15 @@ jobs:
 
     - name: Compile Kernel At Hyperspeed
       run: |
-        export PATH="$GITHUB_WORKSPACE/clang/bin:$GITHUB_WORKSPACE/gcc64/bin:$PATH"
         export ARCH=arm64
         export SUBARCH=arm64
-        export CROSS_COMPILE=aarch64-none-linux-gnu-
-        export CC=clang
-        export LD=ld.lld
+        export CROSS_COMPILE=aarch64-linux-gnu-
+        export CROSS_COMPILE_ARM32=arm-linux-gnueabi-
+        export CC=clang-18
+        export LD=ld.lld-18
         
-        # Hyper-flags for Google Clang pipeline multi-threaded compilation
-        export KCFLAGS="-w -O3 -pipe -ffast-math -flto -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
+        # Turbo-flags for parallel multi-threaded architecture
+        export KCFLAGS="-w -O3 -pipe -ffast-math -flto=thin -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -113,7 +103,7 @@ jobs:
             make $CONF
         fi
         
-        # Aggressively strip heavy debugging and tracing to speed up compilation by 60%
+        # Dynamic configuration patching to strip bulky debugging data
         sed -i 's/CONFIG_FORTIFY_SOURCE=y/CONFIG_FORTIFY_SOURCE=n/g' .config 2>/dev/null || true
         sed -i 's/CONFIG_DEBUG_INFO=y/CONFIG_DEBUG_INFO=n/g' .config 2>/dev/null || true
         echo "CONFIG_FORTIFY_SOURCE=n" >> .config
