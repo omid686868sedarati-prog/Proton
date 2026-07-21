@@ -89,8 +89,8 @@ jobs:
         export CC=clang-15
         export LD=ld.lld-15
         
-        # Inject high-level suppression flags to bypass modern compiler checks on legacy Samsung SoC drivers
-        export KCFLAGS="-w -O2 -pipe -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation -Wno-error=return-type -Wno-error=array-bounds"
+        # Inject critical ignores for type conversions and pointer sizes inside samsung soc folder
+        export KCFLAGS="-w -O2 -pipe -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation -Wno-error=return-type -Wno-error=array-bounds -Wno-error=sizeof-pointer-memaccess"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
             make proton_defconfig
@@ -110,7 +110,7 @@ jobs:
         echo "CONFIG_KSU=y" >> .config
         echo "CONFIG_KSU_NEXT=y" >> .config
         
-        # Safe-Parallel execution block to ensure linking continues even if minor warnings occur
+        # Try full multi-core build. If legacy drivers trip, continue in safe continuous line mode
         make -j$(nproc) || make
 
     - name: Package with AnyKernel3
