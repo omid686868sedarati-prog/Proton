@@ -72,17 +72,13 @@ jobs:
             sed -i 's/copy_to_user/raw_copy_to_user/g' drivers/media/platform/exynos/camera/is-video.c
         fi
 
-    - name: Neutralize Faulty Floating Point Optics Driver
+    - name: Disable Faulty Optics Compilation Branch
       run: |
-        # Clean up the optics makefile from any problematic frame flags
-        if [ -f drivers/optics/Makefile ]; then
-            sed -i 's/-Wno-frame-larger-than=//g' drivers/optics/Makefile
-            sed -i 's/-Wno-frame-larger-than=2048//g' drivers/optics/Makefile
-        fi
-        # Aggressively neutralize the faulty function in tsl2510.c to completely stop floating point errors
-        if [ -f drivers/optics/tsl2510.c ]; then
-            sed -i '/amsAlg_als_processData/,/^}/cobjs' drivers/optics/tsl2510.c 2>/dev/null || true
-            echo "void amsAlg_als_processData(void *ctx) { return; }" >> drivers/optics/tsl2510.c
+        # Strip out the optics subdirectory build link from drivers/Makefile to completely skip the bug
+        if [ -f drivers/Makefile ]; then
+            sed -i 's/obj-y += optics\///g' drivers/Makefile
+            sed -i 's/obj-$(CONFIG_OPTICS) += optics\///g' drivers/Makefile
+            sed -i '/optics/d' drivers/Makefile
         fi
 
     - name: Compile Kernel At Hyperspeed
