@@ -80,6 +80,17 @@ jobs:
             sed -i '/optics/d' drivers/Makefile
         fi
 
+    - name: Auto Patch Exynos 2100 Broken Overclock PLL Code
+      run: |
+        # Fix the un-terminated macro argument list in samsung cal-if clock file line 222
+        TARGET_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
+        if [ -f "$TARGET_FILE" ]; then
+            # Reconstruct the line 222 forcefully to close the brackets safely
+            sed -i 's/PLL_CON3_PLL_SHARED0_ENA.*/PLL_CON3_PLL_SHARED0_ENABLE);/g' "$TARGET_FILE"
+            # Ensure the struct array is properly closed if it leaked into enum scope
+            sed -i 's/frd_2021_rpll, PLL_SHARED0, OSCCLK_CMU, PLL_LOCKTIME_PLL_SHARED0_PLL_LOCK_TIME, PLL_CON3_PLL_SHARED0_ENA/frd_2021_rpll, PLL_SHARED0, OSCCLK_CMU, PLL_LOCKTIME_PLL_SHARED0_PLL_LOCK_TIME, PLL_CON3_PLL_SHARED0_ENABLE);/g' "$TARGET_FILE"
+        fi
+
     - name: Compile Kernel At Hyperspeed
       run: |
         export ARCH=arm64
@@ -89,7 +100,6 @@ jobs:
         export CC=clang-15
         export LD=ld.lld-15
         
-        # Inject critical ignores for type conversions and pointer sizes inside samsung soc folder
         export KCFLAGS="-w -O2 -pipe -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -Wno-error=format -Wno-error=incompatible-pointer-types -Wno-error=int-conversion -Wno-error=unused-result -Wno-error=stringop-truncation -Wno-error=return-type -Wno-error=array-bounds -Wno-error=sizeof-pointer-memaccess"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
@@ -110,7 +120,6 @@ jobs:
         echo "CONFIG_KSU=y" >> .config
         echo "CONFIG_KSU_NEXT=y" >> .config
         
-        # Try full multi-core build. If legacy drivers trip, continue in safe continuous line mode
         make -j$(nproc) || make
 
     - name: Package with AnyKernel3
