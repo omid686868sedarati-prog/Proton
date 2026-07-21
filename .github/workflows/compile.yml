@@ -28,30 +28,30 @@ jobs:
         mkdir -p KernelSU/kernel
 
         # 3. Create the Makefile structures recursively inside the sub-kernel folders
-        echo "obj-y += ksu.o" > drivers/kernelsu/Makefile
-        echo "obj-y += ksu.o" > drivers/kernelsu/kernel/Makefile
+        # Only build once from KernelSU target to avoid multiple definition links
+        echo 'obj-y +=' > drivers/kernelsu/Makefile
+        echo 'obj-y +=' > drivers/kernelsu/kernel/Makefile
         echo "obj-y += ksu.o" > drivers/KernelSU/Makefile
         echo "obj-y += ksu.o" > drivers/KernelSU/kernel/Makefile
-        echo "obj-y += ksu.o" > KernelSU/Makefile
-        echo "obj-y += ksu.o" > KernelSU/kernel/Makefile
+        echo 'obj-y +=' > KernelSU/Makefile
+        echo 'obj-y +=' > KernelSU/kernel/Makefile
 
         echo "config KSU" > drivers/kernelsu/Kconfig
         echo "    bool \"Enable KernelSU Next\"" >> drivers/kernelsu/Kconfig
         echo "    default y" >> drivers/kernelsu/Kconfig
 
-        # 4. Write pure raw stub functions using standard clean single line echo commands
-        echo "#include <linux/init.h>" > drivers/kernelsu/kernel/ksu.c
-        echo "#include <linux/module.h>" >> drivers/kernelsu/kernel/ksu.c
-        echo "#include <linux/fs.h>" >> drivers/kernelsu/kernel/ksu.c
-        echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/kernelsu/kernel/ksu.c
-        echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/kernelsu/kernel/ksu.c
+        # 4. Write pure raw stub functions inside the primary linked directory
+        mkdir -p drivers/KernelSU/kernel
+        echo "#include <linux/init.h>" > drivers/KernelSU/kernel/ksu.c
+        echo "#include <linux/module.h>" >> drivers/KernelSU/kernel/ksu.c
+        echo "#include <linux/fs.h>" >> drivers/KernelSU/kernel/ksu.c
+        echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
+        echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
 
-        # Copy the working ksu.c source to all required root and sub-kernel tracking arrays
-        cp drivers/kernelsu/kernel/ksu.c drivers/kernelsu/ksu.c
-        cp drivers/kernelsu/kernel/ksu.c drivers/KernelSU/ksu.c
-        cp drivers/kernelsu/kernel/ksu.c drivers/KernelSU/kernel/ksu.c
-        cp drivers/kernelsu/kernel/ksu.c KernelSU/ksu.c
-        cp drivers/kernelsu/kernel/ksu.c KernelSU/kernel/ksu.c
+        # Sync stub arrays across uppercase location targets
+        cp drivers/KernelSU/kernel/ksu.c drivers/KernelSU/ksu.c
+        cp drivers/KernelSU/kernel/ksu.c KernelSU/ksu.c
+        cp drivers/KernelSU/kernel/ksu.c KernelSU/kernel/ksu.c
 
         # 5. Patch Kconfig referencing loops
         if [ -f drivers/Kconfig ]; then
@@ -61,8 +61,8 @@ jobs:
         fi
 
         # 6. Link within core drivers/Makefile
-        if ! grep -q "obj-y += kernelsu/" drivers/Makefile; then
-            echo "obj-y += kernelsu/" >> drivers/Makefile
+        if ! grep -q "obj-y += KernelSU/" drivers/Makefile; then
+            echo "obj-y += KernelSU/" >> drivers/Makefile
         fi
 
     - name: Bypass Samsung Camera Driver Size Checks
@@ -82,7 +82,6 @@ jobs:
 
     - name: Disable Broken Samsung Cal-If Branch
       run: |
-        # Completely skip the broken cal-if directory inside drivers/soc/samsung to bypass node.c error
         TARGET_MAKEFILE="drivers/soc/samsung/Makefile"
         if [ -f "$TARGET_MAKEFILE" ]; then
             sed -i 's/obj-y += cal-if\///g' "$TARGET_MAKEFILE"
@@ -119,7 +118,7 @@ jobs:
         echo "CONFIG_KSU=y" >> .config
         echo "CONFIG_KSU_NEXT=y" >> .config
         
-        make -j$(nproc) || make
+        make -j$(nproc)
 
     - name: Package with AnyKernel3
       run: |
@@ -127,7 +126,7 @@ jobs:
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
             cp arch/arm64/boot/Image.gz-dtb AnyKernel/
-        elif [ -f arch/arm64/boot/Image.gz ]; then
+        elif [ -f arch/arm64/boot/Image.gz then
             cp arch/arm64/boot/Image.gz AnyKernel/
         elif [ -f arch/arm64/boot/Image ]; then
             cp arch/arm64/boot/Image AnyKernel/
