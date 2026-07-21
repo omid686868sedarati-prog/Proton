@@ -22,7 +22,8 @@ jobs:
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
-        # 2. Setup structural standalone skeleton exactly where the Makefiles demand it
+        # 2. Setup structural standalone skeleton recursively for ALL layers
+        mkdir -p drivers/kernelsu/kernel
         mkdir -p drivers/KernelSU/kernel
         mkdir -p KernelSU/kernel
 
@@ -91,7 +92,7 @@ jobs:
         # Hard-reconstruct line 222 to fully provide all 13 macro arguments required by CLK_RPLL
         TARGET_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
         if [ -f "$TARGET_FILE" ]; then
-            # Replace the broken huncated line with a structurally valid 13-argument macro call
+            # Replace the broken truncated line with a structurally valid 13-argument macro call
             sed -i 's|.*frd_2021_rpll, PLL_SHARED0.*|	CLK_RPLL(frd_2021_rpll, PLL_SHARED0, OSCCLK_CMU, PLL_LOCKTIME_PLL_SHARED0_PLL_LOCK_TIME, PLL_CON3_PLL_SHARED0_ENABLE, 0, 0, 0, 0, 0, 0, 0, 0),|g' "$TARGET_FILE"
         fi
 
