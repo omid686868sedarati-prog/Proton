@@ -23,6 +23,7 @@ jobs:
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
         # 2. Setup structural standalone skeleton exactly where the Makefiles demand it
+        mkdir -p drivers/kernelsu/kernel
         mkdir -p drivers/KernelSU/kernel
         mkdir -p KernelSU/kernel
 
