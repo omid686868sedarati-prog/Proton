@@ -28,7 +28,6 @@ jobs:
         mkdir -p KernelSU/kernel
 
         # 3. Create the Makefile structures recursively inside the sub-kernel folders
-        # Only build once from KernelSU target to avoid multiple definition links
         echo 'obj-y +=' > drivers/kernelsu/Makefile
         echo 'obj-y +=' > drivers/kernelsu/kernel/Makefile
         echo "obj-y += ksu.o" > drivers/KernelSU/Makefile
@@ -40,13 +39,26 @@ jobs:
         echo "    bool \"Enable KernelSU Next\"" >> drivers/kernelsu/Kconfig
         echo "    default y" >> drivers/kernelsu/Kconfig
 
-        # 4. Write pure raw stub functions inside the primary linked directory
-        mkdir -p drivers/KernelSU/kernel
-        echo "#include <linux/init.h>" > drivers/KernelSU/kernel/ksu.c
-        echo "#include <linux/module.h>" >> drivers/KernelSU/kernel/ksu.c
-        echo "#include <linux/fs.h>" >> drivers/KernelSU/kernel/ksu.c
-        echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
-        echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
+        # 4. Write ALL hardcoded Proton/Samsung hooks inside ksu.c to satisfy Linker requirements
+        cat << 'EOF' > drivers/KernelSU/kernel/ksu.c
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+
+/* Define all missing core system hooks found in Proton source code */
+bool ksu_input_hook = false;
+bool ksu_vfs_read_hook = false;
+bool ksu_execveat_hook = false;
+
+int ksu_handle_execve(void *bprm) { return 0; }
+int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }
+int ksu_handle_faccessat(int *dfd, const char __user **filename, int *mode) { return 0; }
+int ksu_handle_sys_read(unsigned int fd, char __user *buf, size_t count) { return 0; }
+int ksu_handle_stat(int *dfd, const char __user **filename, int *flags) { return 0; }
+int ksu_handle_execveat_sucompat(int *fd, struct filename **filename, void *argv, void *envp, int *flags) { return 0; }
+int ksu_handle_execveat(int *fd, struct filename **filename, void *argv, void *envp, int *flags) { return 0; }
+int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value) { return 0; }
+EOF
 
         # Sync stub arrays across uppercase location targets
         cp drivers/KernelSU/kernel/ksu.c drivers/KernelSU/ksu.c
@@ -126,7 +138,7 @@ jobs:
         
         if [ -f arch/arm64/boot/Image.gz-dtb ]; then
             cp arch/arm64/boot/Image.gz-dtb AnyKernel/
-        elif [ -f arch/arm64/boot/Image.gz then
+        elif [ -f arch/arm64/boot/Image.gz ]; then
             cp arch/arm64/boot/Image.gz AnyKernel/
         elif [ -f arch/arm64/boot/Image ]; then
             cp arch/arm64/boot/Image AnyKernel/
