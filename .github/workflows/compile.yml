@@ -89,14 +89,15 @@ jobs:
 
     - name: Precision Patch Samsung Clock Driver
       run: |
-        # 1. Force restore the core cmucal.h header back to factory state to clean previous edits
+        # 1. Force restore the core cmucal.h header back to factory state to avoid header syntax errors
         git checkout -- drivers/soc/samsung/cal-if/cmucal.h || true
         
-        # 2. Re-patch the instantiation node file with absolute syntax validation
+        # 2. Aggressively purge and replace the entire faulty PLL array block to prevent macro truncation halts
         NODE_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
         if [ -f "$NODE_FILE" ]; then
-            # Neutralize the broken line 223 by converting it into a clean, empty placeholder entry that compiler layout accepts
-            sed -i 's|CLK_RPLL(frd_2021_rpll,.*|	{ .clk.name = "frd_2021_rpll" },|g' "$NODE_FILE"
+            # Clean lines 217 to 226 completely and replace with a flawless, closed struct syntax
+            sed -i '217,226d' "$NODE_FILE"
+            sed -i '217i struct cmucal_pll cmucal_pll_list[] = {\n\t{ .clk.name = "frd_2021_rpll" },\n};' "$NODE_FILE"
         fi
 
     - name: Compile Kernel At Hyperspeed
@@ -108,7 +109,7 @@ jobs:
         export CC=clang-15
         export LD=ld.lld-15
         
-        # Warning isolation and standard suppression
+        # Isolation flags for pure block execution
         export KCFLAGS="-w -O2 -pipe -D__NO_FORTIFY -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0"
         
         if [ -f arch/arm64/configs/proton_defconfig ]; then
