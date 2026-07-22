@@ -49,7 +49,7 @@ jobs:
         echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_faccessat(int *dfd, const char __user **filename, int *mode) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
-        echo "int ksu_handle_sys_read(unsigned int fd, char __user *buf, size_t count) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
+        echo "int ksu_handle_sys_read(unsigned int fd, char __user *buf, size_t count) { return 0; }" >> drivers/KernelSU/mother/ksu.c
         echo "int ksu_handle_stat(int *dfd, const char __user **filename, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_execveat_sucompat(int *fd, void *filename, void *argv, void *envp, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_execveat(int *fd, void *filename, void *argv, void *envp, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
@@ -87,17 +87,19 @@ jobs:
             sed -i '/optics/d' drivers/Makefile
         fi
 
-    - name: Smart Hack Broken Samsung Clock Driver
+    - name: Deep Patch Samsung Clock Header definitions
       run: |
-        # Inject an intelligent macro bypass at the very beginning of the target file to neutralize any CLK_RPLL structure layout errors
-        TARGET_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
-        if [ -f "$TARGET_FILE" ]; then
-            # Inject a smart macro override that accepts any number of arguments using variadic macro syntax (... and __VA_ARGS__)
-            sed -i '1i #define CLK_RPLL(a,b,c,d,e,...) CLK_RPLL(a,b,c,d,PLL_CON3_PLL_SHARED0_ENABLE,0,0,0,0,0,0,0,0)' "$TARGET_FILE"
-            
-            # Clean up line 222 to close the broken Samsung code chain smoothly without trailing rubbish
-            sed -i 's/PLL_CON3_PLL_SHARED0_ENA.*/PLL_CON3_PLL_SHARED0_ENABLE),/g' "$TARGET_FILE"
-            sed -i 's/PLL_CON3_PLL_SHARED0_ENABLE);.*/PLL_CON3_PLL_SHARED0_ENABLE),/g' "$TARGET_FILE"
+        # Directly rewrite the macro inside cmucal.h to forcefully accept any variadic arguments using custom macro logic
+        HEADER_FILE="drivers/soc/samsung/cal-if/cmucal.h"
+        if [ -f "$HEADER_FILE" ]; then
+            # Comment out the rigid 13-argument macro definition and replace it with a flexible multi-argument logic
+            sed -i 's|#define CLK_RPLL(_typ, _id, _pid, _lock, _enable, _stable,.*|#define CLK_RPLL(args...)  { .type = CMUCAL_TYPE_PLL },|g' "$HEADER_FILE"
+        fi
+        
+        # Clean up line 223 of cmucal-node.c to prevent trailing comma enumeration breakages
+        NODE_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
+        if [ -f "$NODE_FILE" ]; then
+            sed -i 's|CLK_RPLL(frd_2021_rpll,.*| { .type = CMUCAL_TYPE_PLL },|g' "$NODE_FILE"
         fi
 
     - name: Compile Kernel At Hyperspeed
