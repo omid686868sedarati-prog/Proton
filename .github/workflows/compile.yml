@@ -49,7 +49,7 @@ jobs:
         echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_faccessat(int *dfd, const char __user **filename, int *mode) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
-        echo "int ksu_handle_sys_read(unsigned int fd, char __user *buf, size_t count) { return 0; }" >> drivers/KernelSU/mother/ksu.c
+        echo "int ksu_handle_sys_read(unsigned int fd, char __user *buf, size_t count) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_stat(int *dfd, const char __user **filename, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_execveat_sucompat(int *fd, void *filename, void *argv, void *envp, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_execveat(int *fd, void *filename, void *argv, void *envp, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
