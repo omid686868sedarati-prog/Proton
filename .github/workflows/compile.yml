@@ -22,7 +22,8 @@ jobs:
         rm -rf drivers/kernelsu drivers/KernelSU KernelSU
         git rm -rf drivers/kernelsu drivers/KernelSU KernelSU 2>/dev/null || true
 
-        # 2. Setup structural standalone skeleton recursively for ALL layers
+        # 2. Setup structural standalone skeleton recursively for ALL layers first
+        mkdir -p drivers/kernelsu/kernel
         mkdir -p drivers/KernelSU/kernel
         mkdir -p KernelSU/kernel
 
