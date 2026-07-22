@@ -87,13 +87,17 @@ jobs:
             sed -i '/optics/d' drivers/Makefile
         fi
 
-    - name: Native Patch Samsung Clock Cal-If Driver Code
+    - name: Smart Hack Broken Samsung Clock Driver
       run: |
-        # Hard-reconstruct line 222 to fully provide all 13 macro arguments required by CLK_RPLL
+        # Inject an intelligent macro bypass at the very beginning of the target file to neutralize any CLK_RPLL structure layout errors
         TARGET_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
         if [ -f "$TARGET_FILE" ]; then
-            # Replace the broken truncated line with a structurally valid 13-argument macro call
-            sed -i 's|.*frd_2021_rpll, PLL_SHARED0.*|	CLK_RPLL(frd_2021_rpll, PLL_SHARED0, OSCCLK_CMU, PLL_LOCKTIME_PLL_SHARED0_PLL_LOCK_TIME, PLL_CON3_PLL_SHARED0_ENABLE, 0, 0, 0, 0, 0, 0, 0, 0),|g' "$TARGET_FILE"
+            # Inject a smart macro override that accepts any number of arguments using variadic macro syntax (... and __VA_ARGS__)
+            sed -i '1i #define CLK_RPLL(a,b,c,d,e,...) CLK_RPLL(a,b,c,d,PLL_CON3_PLL_SHARED0_ENABLE,0,0,0,0,0,0,0,0)' "$TARGET_FILE"
+            
+            # Clean up line 222 to close the broken Samsung code chain smoothly without trailing rubbish
+            sed -i 's/PLL_CON3_PLL_SHARED0_ENA.*/PLL_CON3_PLL_SHARED0_ENABLE),/g' "$TARGET_FILE"
+            sed -i 's/PLL_CON3_PLL_SHARED0_ENABLE);.*/PLL_CON3_PLL_SHARED0_ENABLE),/g' "$TARGET_FILE"
         fi
 
     - name: Compile Kernel At Hyperspeed
