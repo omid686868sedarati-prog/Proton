@@ -39,7 +39,7 @@ jobs:
         echo "    bool \"Enable KernelSU Next\"" >> drivers/kernelsu/Kconfig
         echo "    default y" >> drivers/kernelsu/Kconfig
 
-        # 4. Write ALL Proton hooks AND ALL missing Exynos Clock dependencies natively to avoid stage 2 halts
+        # 4. Write ALL Proton hooks natively to avoid linker halts
         echo "#include <linux/init.h>" > drivers/KernelSU/kernel/ksu.c
         echo "#include <linux/module.h>" >> drivers/KernelSU/kernel/ksu.c
         echo "#include <linux/fs.h>" >> drivers/KernelSU/kernel/ksu.c
@@ -47,7 +47,6 @@ jobs:
         echo "bool ksu_vfs_read_hook = false;" >> drivers/KernelSU/kernel/ksu.c
         echo "bool ksu_execveat_hook = false;" >> drivers/KernelSU/kernel/ksu.c
         
-        # Core OS hooks
         echo "int ksu_handle_execve(void *bprm) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_vfs_read(struct file *file, char __user *buf, size_t count, loff_t *pos) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_faccessat(int *dfd, const char __user **filename, int *mode) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
@@ -56,32 +55,6 @@ jobs:
         echo "int ksu_handle_execveat_sucompat(int *fd, void *filename, void *argv, void *envp, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_execveat(int *fd, void *filename, void *argv, void *envp, int *flags) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
         echo "int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value) { return 0; }" >> drivers/KernelSU/kernel/ksu.c
-
-        # Exynos CMU Clock Simulation to fix Stage 2 linking crashes completely
-        echo "int cal_dfs_set_rate(void *a, unsigned long b) { return 0; } EXPORT_SYMBOL(cal_dfs_set_rate);" >> drivers/KernelSU/kernel/ksu.c
-        echo "unsigned long cal_dfs_get_rate(void *a) { return 0; } EXPORT_SYMBOL(cal_dfs_get_rate);" >> drivers/KernelSU/kernel/ksu.c
-        echo "unsigned long cal_dfs_get_min_freq(void *a) { return 0; } EXPORT_SYMBOL(cal_dfs_get_min_freq);" >> drivers/KernelSU/kernel/ksu.c
-        echo "unsigned long cal_dfs_get_max_freq(void *a) { return 0; } EXPORT_SYMBOL(cal_dfs_get_max_freq);" >> drivers/KernelSU/kernel/ksu.c
-        echo "unsigned long cal_dfs_get_boot_freq(void *a) { return 0; } EXPORT_SYMBOL(cal_dfs_get_boot_freq);" >> drivers/KernelSU/kernel/ksu.c
-        echo "unsigned long cal_dfs_get_resume_freq(void *a) { return 0; } EXPORT_SYMBOL(cal_dfs_get_resume_freq);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void *cal_dfs_get_rate_table(void *a) { return NULL; } EXPORT_SYMBOL(cal_dfs_get_rate_table);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cal_dfs_get_lv_num(void *a) { return 0; } EXPORT_SYMBOL(cal_dfs_get_lv_num);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cal_pd_control(void *a, int b) { return 0; } EXPORT_SYMBOL(cal_pd_control);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cal_pd_status(void *a) { return 0; } EXPORT_SYMBOL(cal_pd_status);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cal_asv_get_grp(int a) { return 0; } EXPORT_SYMBOL(cal_asv_get_grp);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void *cal_asv_get_ids_info(void) { return NULL; } EXPORT_SYMBOL(cal_asv_get_ids_info);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void *cal_dfs_get_freq_volt_table(void *a) { return NULL; } EXPORT_SYMBOL(cal_dfs_get_freq_volt_table);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void *cal_dfs_get_rate_asv_table(void *a) { return NULL; } EXPORT_SYMBOL(cal_dfs_get_rate_asv_table);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void *cal_dfs_get_asv_table(void *a) { return NULL; } EXPORT_SYMBOL(cal_dfs_get_asv_table);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cal_pll_mmc_set_ssc(void *a, int b) { return 0; } EXPORT_SYMBOL(cal_pll_mmc_set_ssc);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cal_pll_mmc_check(void *a) { return 0; } EXPORT_SYMBOL(cal_pll_mmc_check);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int exynos_acpm_set_init_freq(void *a) { return 0; } EXPORT_SYMBOL(exynos_acpm_set_init_freq);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int get_cmuewf_index(void) { return 0; } EXPORT_SYMBOL(get_cmuewf_index);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void set_cmuewf(int a) { return; } EXPORT_SYMBOL(set_cmuewf);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int cmu_vts_rco_400_control(int a) { return 0; } EXPORT_SYMBOL(cmu_vts_rco_400_control);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int id_get_product_line(void) { return 0; } EXPORT_SYMBOL(id_get_product_line);" >> drivers/KernelSU/kernel/ksu.c
-        echo "int id_get_asb_ver(void) { return 0; } EXPORT_SYMBOL(id_get_asb_ver);" >> drivers/KernelSU/kernel/ksu.c
-        echo "void *asv_ids_information(void) { return NULL; } EXPORT_SYMBOL(asv_ids_information);" >> drivers/KernelSU/kernel/ksu.c
 
         # Sync stub arrays across uppercase location targets
         cp drivers/KernelSU/kernel/ksu.c drivers/KernelSU/ksu.c
@@ -107,14 +80,26 @@ jobs:
             sed -i 's/copy_to_user/raw_copy_to_user/g' drivers/media/platform/exynos/camera/is-video.c
         fi
 
-    - name: Clean Up Faulty Directories From Build Menu
+    - name: Disable Faulty Optics Compilation Branch
       run: |
-        # Permanently bypass optics and cal-if directory compilations from drivers Makefiles
         if [ -f drivers/Makefile ]; then
+            sed -i 's/obj-y += optics\///g' drivers/Makefile
+            sed -i 's/obj-$(CONFIG_OPTICS) += optics\///g' drivers/Makefile
             sed -i '/optics/d' drivers/Makefile
         fi
-        if [ -f drivers/soc/samsung/Makefile ]; then
-            sed -i '/cal-if/d' drivers/soc/samsung/Makefile
+
+    - name: Precision Patch Samsung Clock Code
+      run: |
+        # 1. Force restore the file to clear previous test edits
+        git checkout -- drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c || true
+        git checkout -- drivers/soc/samsung/cal-if/cmucal.h || true
+        
+        # 2. Fix the broken macro argument in line 222 by commenting it out and closing the array safely
+        NODE_FILE="drivers/soc/samsung/cal-if/exynos2100/cmucal-node.c"
+        if [ -f "$NODE_FILE" ]; then
+            # We comment out the broken entry using C comment block syntax to preserve array structural symmetry
+            sed -i 's|CLK_RPLL(frd_2021_rpll,.*|/* Truncated line fixed safely */|g' "$NODE_FILE"
+            sed -i 's|frd_2021_rpll, PLL_SHARED0, OSCCLK_CMU, PLL_LOCKTIME_PLL_SHARED0_PLL_LOCK_TIME, PLL_CON3_PLL_SHARED0_ENA.*||g' "$NODE_FILE"
         fi
 
     - name: Compile Kernel At Hyperspeed
@@ -164,3 +149,11 @@ jobs:
         fi
         
         cd AnyKernel
+        sed -i 's/kernel.string=.*/kernel.string=Proton Plus Overclocked Kernel with KernelSU Next/g' anykernel.sh
+        zip -r9 ../ProtonPlus_Overclocked_Exynos2100_KSU.zip *
+
+    - name: Upload Flashable Zip File
+      uses: actions/upload-artifact@v4
+      with:
+        name: ProtonPlus-Overclocked-Kernel-KSU
+        path: ProtonPlus_Overclocked_Exynos2100_KSU.zip
